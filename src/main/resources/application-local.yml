@@ -1,0 +1,45 @@
+server:
+  port: 8080
+debug: false
+spring:
+  application:
+    name: volunteer-matching-service
+  config:
+    activate:
+      on-profile: local
+  freemarker:
+    template-loader-path:
+      - classpath:/templates
+    suffix: ftl
+    charset: UTF-8
+    check-template-location: false
+    expose-spring-macro-helpers: true
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/disaster-management}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:admin}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      idle-timeout: 60000
+      max-lifetime: 30000
+      connection-timeout: 60000
+      pool-name: HikariConectonPoolIPSLDatabase
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+security:
+  jwt:
+    secret-key: 3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b
+    expiration-time: 3600000
+
+
+
+
