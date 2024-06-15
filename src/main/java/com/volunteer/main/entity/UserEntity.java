@@ -1,29 +1,29 @@
 package com.volunteer.main.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
-@Table(name="VOLUNTEER_USERS")
+@Table(name="USERS")
 //@Data
 @Getter
 @Setter
 public class UserEntity implements UserDetails {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VOLUNTEER_USERS_SEQ")
-    @SequenceGenerator(name = "VOLUNTEER_USERS_SEQ", sequenceName = "VOLUNTEER_USERS_SEQ", allocationSize = 1)
-    @Column(name= "T_ID")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USERS_SEQ")
+    @SequenceGenerator(name = "USERS_SEQ", sequenceName = "USERS_SEQ", allocationSize = 1)
+    @Column(name = "T_ID")
     private Long tId;
 
     @Column(nullable = false)
@@ -35,17 +35,30 @@ public class UserEntity implements UserDetails {
     @Column(nullable = false)
     private String password;
 
-    @CreationTimestamp
+    @CreatedDate
     @Column(updatable = false, name = "created_at")
     private Date createdAt;
 
-    @UpdateTimestamp
+    @LastModifiedDate
     @Column(name = "updated_at")
     private Date updatedAt;
 
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    @JsonManagedReference
+    private Set<RoleEntity> roles = new HashSet<>();
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        for (RoleEntity role : roles) {
+            authorities.addAll(role.getAuthorities());
+        }
+        return authorities;
     }
 
     public String getPassword() {
@@ -76,5 +89,4 @@ public class UserEntity implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
 }
