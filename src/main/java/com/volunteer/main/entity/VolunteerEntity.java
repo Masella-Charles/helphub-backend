@@ -15,6 +15,7 @@ public class VolunteerEntity {
     private Long tId;
     private String name;
     private String phone;
+    @Column(unique = true)
     private String email;
     private String additionalInfo;
     private Boolean status;
