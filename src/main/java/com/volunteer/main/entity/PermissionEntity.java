@@ -15,7 +15,12 @@ public class PermissionEntity {
     @Column(name= "T_ID")
     private Long tId;
 
-    private String name;
+
+    @Column(name = "PERMISSION_NAME", unique = true, nullable = false)
+    private String permissionName;
+
+    @Column(name = "PERMISSION_DESCRIPTION", unique = true, nullable = false)
+    private String permissionDescription;
 
     @ManyToMany(mappedBy = "permissionEntities")
     private Set<RoleEntity> roles;

@@ -22,7 +22,7 @@ public class UserController {
     }
 
 
-    @GetMapping("/me")
+    @GetMapping("/profile")
     public ResponseEntity<UserEntity> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
