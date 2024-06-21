@@ -20,6 +20,9 @@ public class RoleEntity {
     @Column(name = "ROLE_NAME", unique = true, nullable = false)
     private String roleName;
 
+    @Column(name = "ROLE_DESCRIPTION", unique = true, nullable = false)
+    private String roleDescription;
+
     @ManyToMany(mappedBy = "roles")
     @JsonBackReference
     private Set<UserEntity> users = new HashSet<>();
@@ -38,7 +41,7 @@ public class RoleEntity {
             authorities.add(new GrantedAuthority() {
                 @Override
                 public String getAuthority() {
-                    return permission.getName();
+                    return permission.getPermissionName();
                 }
             });
         }
