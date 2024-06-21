@@ -6,6 +6,12 @@ import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
+
 @Component
 public class Utils {
 
@@ -19,5 +25,13 @@ public class Utils {
             e.printStackTrace();
             return e.getMessage();
         }
+    }
+
+    public static LocalDate date() {
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate now = LocalDate.now();
+        String formattedDate = now.format(dateFormat);
+        System.out.println("Formatted Date: " + formattedDate);
+        return now;
     }
 }
