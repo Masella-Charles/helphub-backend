@@ -17,4 +17,5 @@ public class DisasterEntity {
     private String name;
     private String description;
     private LocalDate date;
+    private Boolean status;
 }

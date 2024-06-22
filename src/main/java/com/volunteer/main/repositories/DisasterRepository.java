@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface DisasterRepository extends CrudRepository<DisasterEntity, Integer> {
+public interface DisasterRepository extends CrudRepository<DisasterEntity, Long> {
 
 }
