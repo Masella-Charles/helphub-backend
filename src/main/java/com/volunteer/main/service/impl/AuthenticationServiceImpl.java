@@ -41,9 +41,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         userEntity.setFullName(input.getFullName());
         userEntity.setPassword(passwordEncoder.encode(input.getPassword()));
 
-//        // Fetching the default role
-//        RoleEntity role = roleRepository.findByRoleName(input.getRole()).orElseThrow(() -> new RuntimeException("Role not found"));
-//        userEntity.setRole(role);
+        // Fetching the default role
+        RoleEntity role = roleRepository.findByRoleName(input.getRole()).orElseThrow(() -> new RuntimeException("Role not found"));
+        userEntity.setRole(role);
 
         return userRepository.save(userEntity);
     }
