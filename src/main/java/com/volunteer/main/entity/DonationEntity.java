@@ -23,4 +23,9 @@ public class DonationEntity {
     // Fields for commodity donations
     private String commodityName;
     private Integer quantity;
+    private Boolean status;
+
+    @ManyToOne(optional = true)
+    @JoinColumn(name = "disaster_id", referencedColumnName = "T_ID")
+    private DisasterEntity disasterEntity;
 }
