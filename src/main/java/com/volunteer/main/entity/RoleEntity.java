@@ -3,12 +3,16 @@ package com.volunteer.main.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.*;
 
 @Entity
-@Table(name="VOLUNTEER_ROLES")
+@Table(name="volunteer_roles")
+@Getter
+@Setter
 @Data
 public class RoleEntity {
     @Id
@@ -23,11 +27,11 @@ public class RoleEntity {
     @Column(name = "ROLE_DESCRIPTION", unique = true, nullable = false)
     private String roleDescription;
 
-    @ManyToMany(mappedBy = "roles")
+    @OneToMany(mappedBy = "role")
     @JsonBackReference
     private Set<UserEntity> users = new HashSet<>();
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "role_permission",
             joinColumns = @JoinColumn(name = "role_id"),
