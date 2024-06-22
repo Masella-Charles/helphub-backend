@@ -1,5 +1,7 @@
 package com.volunteer.main.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,10 +17,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.*;
 
 @Entity
-@Table(name="USERS")
+@Table(name="users")
 //@Data
 @Getter
 @Setter
+@Inheritance(strategy = InheritanceType.JOINED)
 public class UserEntity implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USERS_SEQ")
@@ -46,6 +49,11 @@ public class UserEntity implements UserDetails {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "role_id")
     private RoleEntity role;
+
+    @OneToOne(mappedBy = "user")
+    @JsonBackReference
+    private VolunteerEntity volunteer;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name="PERMISSION")
+@Table(name="permission")
 @Data
 public class PermissionEntity {
     @Id

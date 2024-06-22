@@ -10,7 +10,7 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.*;
 
 @Entity
-@Table(name="VOLUNTEER_ROLES")
+@Table(name="volunteer_roles")
 @Getter
 @Setter
 @Data
