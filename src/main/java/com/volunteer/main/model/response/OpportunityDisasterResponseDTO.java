@@ -14,16 +14,15 @@ public class OpportunityDisasterResponseDTO {
     private Integer requiredVolunteers;
     private Double hours;
     private Boolean status;
+    private byte[] opportunityImage;
     private DisasterEntity disasterEntity; // Reference to DisasterEntity
 
     @Data
     public static class DisasterEntity{
-
         private Long tId;
         private String name;
         private String description;
         private LocalDate date;
         private Boolean status;
-
     }
 }

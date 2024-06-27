@@ -13,7 +13,7 @@ public class DisasterEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DISASTERS_REQ")
     @SequenceGenerator(name = "DISASTERS_REQ", sequenceName = "DISASTERS_REQ", allocationSize = 1)
     @Column(name= "T_ID")
-    private Long tId;
+    private Long id;
     private String name;
     private String description;
     private LocalDate date;

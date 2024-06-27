@@ -13,7 +13,7 @@ public class DonationEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DONATION_REQ")
     @SequenceGenerator(name = "DONATION_REQ", sequenceName = "DONATION_REQ", allocationSize = 1)
     @Column(name= "T_ID")
-    private Long tId;
+    private Long id;
     private String donorName;
     private String type; // 'money' or 'commodity'
 

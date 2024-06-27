@@ -15,5 +15,6 @@ public interface DisasterService {
     ResponseEntity<?> updateDisaster(DisasterDTO disasterDTO);
     ResponseEntity<?> transitionDisaster(DisasterDTO disasterDTO);
     ResponseEntity<?> getDisasterById(DisasterDTO disasterDTO);
+    ResponseEntity<?> getDisasterByIdOrStatus(Long id, Boolean status);
     List<DisasterEntity> getAllDisasters();
 }

@@ -11,7 +11,7 @@ public class PartnerEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PARTNERS_REQ")
     @SequenceGenerator(name = "PARTNERS_REQ", sequenceName = "PARTNERS_REQ", allocationSize = 1)
     @Column(name= "T_ID")
-    private Long tId;
+    private Long id;
     private String name;
     private String phone;
     private String email;

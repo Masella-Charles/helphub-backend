@@ -32,6 +32,7 @@ public class DisasterController {
     public ResponseEntity<?> handlePermissionRequest(HttpServletRequest httpServletRequest ,
                                                      @RequestBody(required = false) @Valid DisasterDTO disasterDTO,
                                                      @PathVariable(name = "id", required = false) Long id,
+                                                     @PathVariable(name = "status", required = false) Boolean status,
                                                      @RequestHeader HttpHeaders headers){
 
         logger.info("-------------------------------------------------------------------");
@@ -50,7 +51,7 @@ public class DisasterController {
         return switch (path) {
             case "/api/v1/disaster/create" -> createDisaster(disasterDTO);
             case "/api/v1/disaster/list" -> getAllDisasters();
-            case "/api/v1/disaster/get" -> getDisasterById(disasterDTO);
+            case "/api/v1/disaster/get" -> getDisasterByIdOrStatus(id,status);
             case "/api/v1/disaster/update" -> updateDisaster(disasterDTO);
             case "/api/v1/disaster/transition" -> transitionDisaster(disasterDTO);
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
@@ -70,6 +71,10 @@ public class DisasterController {
 
     private ResponseEntity<?> getDisasterById(DisasterDTO disasterDTO) {
         return disasterService.getDisasterById(disasterDTO);
+    }
+
+    private ResponseEntity<?> getDisasterByIdOrStatus(Long id, Boolean status) {
+        return disasterService.getDisasterByIdOrStatus(id,status);
     }
 
     private ResponseEntity<?> updateDisaster(DisasterDTO disasterDTO) {

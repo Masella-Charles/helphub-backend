@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name="VOLUNTEERS")
 @Data
@@ -14,7 +17,7 @@ public class VolunteerEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VOLUNTEERS_REQ")
     @SequenceGenerator(name = "VOLUNTEERS_REQ", sequenceName = "VOLUNTEERS_REQ", allocationSize = 1)
     @Column(name= "T_ID")
-    private Long tId;
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "USER_ID", referencedColumnName = "T_ID")
@@ -29,4 +32,9 @@ public class VolunteerEntity {
 
     @Column(name = "STATUS", nullable = false)
     private Boolean status;
+
+    @ElementCollection
+    @CollectionTable(name = "volunteer_skills", joinColumns = @JoinColumn(name = "volunteer_id"))
+    @Column(name = "skill")
+    private Set<String> skills = new HashSet<>();
 }

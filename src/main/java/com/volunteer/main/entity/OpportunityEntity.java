@@ -13,7 +13,7 @@ public class OpportunityEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VOL_OPP_SEQ")
     @SequenceGenerator(name = "VOL_OPP_SEQ", sequenceName = "VOL_OPP_SEQ", allocationSize = 1)
     @Column(name= "T_ID")
-    private Long tId;
+    private Long id;
 
     private String name;
     private String description;
@@ -21,6 +21,9 @@ public class OpportunityEntity {
     private Integer requiredVolunteers;
     private Double hours;
     private Boolean status;
+
+    @Lob
+    private byte[] opportunityImage;
 
     @ManyToOne(optional = true)
     @JoinColumn(name = "disaster_id", referencedColumnName = "T_ID")

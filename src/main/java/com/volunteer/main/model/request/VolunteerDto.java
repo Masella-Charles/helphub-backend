@@ -5,6 +5,7 @@ import com.volunteer.main.entity.UserEntity;
 import lombok.Data;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Data
 public class VolunteerDto {
@@ -14,4 +15,5 @@ public class VolunteerDto {
     private String email;
     private String additionalInfo;
     private int userId;
+    private List<String> skills;
 }

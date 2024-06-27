@@ -46,7 +46,7 @@ public class RoleServiceImpl implements RoleService {
 
             // Convert the saved entity back to DTO
             RoleDTO savedRoleDTO = new RoleDTO();
-            savedRoleDTO.setId(roleEntity.getTId());
+            savedRoleDTO.setId(roleEntity.getId());
             savedRoleDTO.setRoleName(roleEntity.getRoleName());
             savedRoleDTO.setRoleDescription(roleEntity.getRoleDescription());
 
@@ -105,7 +105,7 @@ public class RoleServiceImpl implements RoleService {
 
             // Convert the updated entity to DTO
             RoleDTO updatedRoleDTO = new RoleDTO();
-            updatedRoleDTO.setId(existingRole.getTId());
+            updatedRoleDTO.setId(existingRole.getId());
             updatedRoleDTO.setRoleName(existingRole.getRoleName());
             updatedRoleDTO.setRoleDescription(existingRole.getRoleDescription());
 
@@ -172,7 +172,7 @@ public class RoleServiceImpl implements RoleService {
 
             // Construct the roleDTO
             RoleDTO roleDTO = new RoleDTO();
-            roleDTO.setId(roleToDelete.getTId());
+            roleDTO.setId(roleToDelete.getId());
             roleDTO.setRoleName(roleToDelete.getRoleName());
             roleDTO.setRoleDescription(roleToDelete.getRoleDescription());
             responseDTO.setRoleDTO(roleDTO);

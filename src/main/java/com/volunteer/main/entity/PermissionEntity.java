@@ -14,7 +14,7 @@ public class PermissionEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "PERMISSION_SEQ")
     @SequenceGenerator(name = "PERMISSION_SEQ", sequenceName = "PERMISSION_SEQ", allocationSize = 1)
     @Column(name = "T_ID")
-    private Long tId;
+    private Long id;
 
     @Column(name = "PERMISSION_NAME", unique = true, nullable = false)
     private String permissionName;

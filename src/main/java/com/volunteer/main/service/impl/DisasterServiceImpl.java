@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -42,7 +43,7 @@ public class DisasterServiceImpl implements DisasterService {
             disasterEntity = disasterRepository.save(disasterEntity);
 
             DisasterDTO disasterSaved = new DisasterDTO();
-            disasterSaved.setId(disasterEntity.getTId());
+            disasterSaved.setId(disasterEntity.getId());
             disasterSaved.setName(disasterEntity.getName());
             disasterSaved.setDescription(disasterEntity.getDescription());
             disasterSaved.setStatus(disasterEntity.getStatus());
@@ -75,14 +76,14 @@ public class DisasterServiceImpl implements DisasterService {
             DisasterEntity disasterEntity = disasterRepository.findById(disasterDTO.getId())
                     .orElseThrow(() -> new CustomAuthenticationException("Disaster not found with id: " + disasterDTO.getId(), new Throwable()));
 
-            disasterEntity.setTId(disasterDTO.getId());
+            disasterEntity.setId(disasterDTO.getId());
             disasterEntity.setName(disasterDTO.getName());
             disasterEntity.setDescription(disasterDTO.getDescription());
 
             disasterEntity = disasterRepository.save(disasterEntity);
 
             DisasterDTO disasterSaved = new DisasterDTO();
-            disasterSaved.setId(disasterEntity.getTId());
+            disasterSaved.setId(disasterEntity.getId());
             disasterSaved.setName(disasterEntity.getName());
             disasterSaved.setDescription(disasterEntity.getDescription());
             disasterSaved.setStatus(disasterEntity.getStatus());
@@ -115,12 +116,12 @@ public class DisasterServiceImpl implements DisasterService {
             DisasterEntity disasterEntity = disasterRepository.findById(disasterDTO.getId())
                     .orElseThrow(() -> new CustomAuthenticationException("Disaster not found with id: " + disasterDTO.getId(), new Throwable()));
 
-            disasterEntity.setTId(disasterDTO.getId());
+            disasterEntity.setId(disasterDTO.getId());
             disasterEntity.setStatus(disasterDTO.getStatus());
             disasterEntity = disasterRepository.save(disasterEntity);
 
             DisasterDTO disasterSaved = new DisasterDTO();
-            disasterSaved.setId(disasterEntity.getTId());
+            disasterSaved.setId(disasterEntity.getId());
             disasterSaved.setName(disasterEntity.getName());
             disasterSaved.setDescription(disasterEntity.getDescription());
             disasterSaved.setStatus(disasterEntity.getStatus());
@@ -153,12 +154,12 @@ public class DisasterServiceImpl implements DisasterService {
             DisasterEntity disasterEntity = disasterRepository.findById(disasterDTO.getId())
                     .orElseThrow(() -> new CustomAuthenticationException("Disaster not found with id: " + disasterDTO.getId(), new Throwable()));
 
-            disasterEntity.setTId(disasterDTO.getId());
+            disasterEntity.setId(disasterDTO.getId());
 
             disasterEntity = disasterRepository.save(disasterEntity);
 
             DisasterDTO disasterSaved = new DisasterDTO();
-            disasterSaved.setId(disasterEntity.getTId());
+            disasterSaved.setId(disasterEntity.getId());
             disasterSaved.setName(disasterEntity.getName());
             disasterSaved.setDescription(disasterEntity.getDescription());
             disasterSaved.setStatus(disasterEntity.getStatus());
@@ -185,17 +186,47 @@ public class DisasterServiceImpl implements DisasterService {
     }
 
     @Override
+    public ResponseEntity<?> getDisasterByIdOrStatus(Long id, Boolean status) {
+        try {
+            Optional<DisasterEntity> disasterEntityOptional = disasterRepository.findByIdOrStatus(id, status);
+            DisasterEntity disasterEntity = disasterEntityOptional.orElseThrow(() -> {
+                if (id != null) {
+                    return new EntityNotFoundException("Disaster not found with ID: " + id);
+                } else {
+                    return new EntityNotFoundException("Disaster not found with status: " + status);
+                }
+            });
+
+            // Map entity to DTO if needed
+            DisasterDTO disasterDTO = mapToDTO(disasterEntity);
+
+            return ResponseEntity.ok().body(disasterDTO);
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new CustomAuthenticationException("Failed to get disaster: " + e.getMessage(), e);
+        }
+    }
+
+    @Override
     public List<DisasterEntity> getAllDisasters() {
         try {
-            Iterable<DisasterEntity> disasterEntityIterableIterable = disasterRepository.findAll();
-            return StreamSupport.stream(disasterEntityIterableIterable.spliterator(), false)
+            Iterable<DisasterEntity> disasterEntityIterable = disasterRepository.findAll();
+            return StreamSupport.stream(disasterEntityIterable.spliterator(), false)
                     .collect(Collectors.toList());
-        } catch (DataAccessException e) {
-            logger.error("Database error while listing all disasters: {}", e.getMessage());
-            throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
         } catch (Exception e) {
-            logger.error("Unexpected error while listing all disasters: {}", e.getMessage());
-            throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
+            throw new CustomAuthenticationException("Failed to get all disasters: " + e.getMessage(), e);
         }
+    }
+
+    // Utility method to map Entity to DTO
+    private DisasterDTO mapToDTO(DisasterEntity disasterEntity) {
+        DisasterDTO disasterDTO = new DisasterDTO();
+        disasterDTO.setId(disasterEntity.getId());
+        disasterDTO.setName(disasterEntity.getName());
+        disasterDTO.setDescription(disasterEntity.getDescription());
+        disasterDTO.setDate(disasterEntity.getDate());
+        disasterDTO.setStatus(disasterEntity.getStatus());
+        return disasterDTO;
     }
 }

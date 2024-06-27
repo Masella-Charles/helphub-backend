@@ -4,13 +4,16 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.volunteer.main.entity.DisasterEntity;
+import com.volunteer.main.entity.DonationDistributionEntity;
 import com.volunteer.main.entity.DonationEntity;
 import com.volunteer.main.exceptions.CustomAuthenticationException;
 import com.volunteer.main.model.request.DonationDTO;
+import com.volunteer.main.model.request.DonationDistributionDTO;
 import com.volunteer.main.model.response.DonationResponseDTO;
 import com.volunteer.main.model.response.DonationDisasterResponseDTO;
 import com.volunteer.main.model.response.ResponseStatus;
 import com.volunteer.main.repositories.DisasterRepository;
+import com.volunteer.main.repositories.DonationDistributionRepository;
 import com.volunteer.main.repositories.DonationRepository;
 import com.volunteer.main.service.DonationService;
 import com.volunteer.main.utils.Utils;
@@ -18,6 +21,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +35,13 @@ public class DonationServiceImpl implements DonationService {
     private final DonationRepository donationRepository;
     private final DisasterRepository disasterRepository;
     private final Utils utils;
+    private final DonationDistributionRepository donationDistributionRepository;
 
-    public DonationServiceImpl(DonationRepository donationRepository, DisasterRepository disasterRepository, Utils utils) {
+    public DonationServiceImpl(DonationRepository donationRepository, DisasterRepository disasterRepository, Utils utils, DonationDistributionRepository donationDistributionRepository) {
         this.donationRepository = donationRepository;
         this.disasterRepository = disasterRepository;
         this.utils = utils;
+        this.donationDistributionRepository = donationDistributionRepository;
     }
 
     @Override
@@ -60,7 +66,7 @@ public class DonationServiceImpl implements DonationService {
 
             // Create response DTO
             DonationDTO donationSaved = new DonationDTO();
-            donationSaved.setId(donationEntity.getTId());
+            donationSaved.setId(donationEntity.getId());
             donationSaved.setDonorName(donationEntity.getDonorName());
             donationSaved.setType(donationEntity.getType());
             donationSaved.setAmount(donationEntity.getAmount());
@@ -70,7 +76,7 @@ public class DonationServiceImpl implements DonationService {
 
             // Only set disasterId if the disaster is not null
             if (donationEntity.getDisasterEntity() != null) {
-                donationSaved.setDisasterId(donationEntity.getDisasterEntity().getTId());
+                donationSaved.setDisasterId(donationEntity.getDisasterEntity().getId());
             }
 
             ResponseStatus responseStatus = new ResponseStatus();
@@ -98,7 +104,7 @@ public class DonationServiceImpl implements DonationService {
             DonationEntity donationEntity = donationRepository.findById(donationDTO.getId())
                     .orElseThrow(() -> new CustomAuthenticationException("Donation not found with id: " + donationDTO.getId(), new Throwable()));
 
-            donationEntity.setTId(donationDTO.getId());
+            donationEntity.setId(donationDTO.getId());
             donationEntity.setDonorName(donationDTO.getDonorName());
             donationEntity.setType(donationDTO.getType());
             donationEntity.setAmount(donationDTO.getAmount());
@@ -114,7 +120,7 @@ public class DonationServiceImpl implements DonationService {
             donationEntity = donationRepository.save(donationEntity);
 
             DonationDTO donationSaved = new DonationDTO();
-            donationSaved.setId(donationEntity.getTId());
+            donationSaved.setId(donationEntity.getId());
             donationSaved.setDonorName(donationEntity.getDonorName());
             donationSaved.setType(donationEntity.getType());
             donationSaved.setAmount(donationEntity.getAmount());
@@ -125,7 +131,7 @@ public class DonationServiceImpl implements DonationService {
 
             // Only set disasterId if the disaster is not null
             if (donationEntity.getDisasterEntity() != null) {
-                donationSaved.setDisasterId(donationEntity.getDisasterEntity().getTId());
+                donationSaved.setDisasterId(donationEntity.getDisasterEntity().getId());
             }
 
             ResponseStatus responseStatus = new ResponseStatus();
@@ -152,14 +158,14 @@ public class DonationServiceImpl implements DonationService {
             DonationEntity donationEntity = donationRepository.findById(donationDTO.getId())
                     .orElseThrow(() -> new CustomAuthenticationException("Donation not found with id: " + donationDTO.getId(), new Throwable()));
 
-            donationEntity.setTId(donationDTO.getId());
+            donationEntity.setId(donationDTO.getId());
             donationEntity.setStatus(donationDTO.getStatus());
 
 
             donationEntity = donationRepository.save(donationEntity);
 
             DonationDTO donationSaved = new DonationDTO();
-            donationSaved.setId(donationEntity.getTId());
+            donationSaved.setId(donationEntity.getId());
             donationSaved.setDonorName(donationEntity.getDonorName());
             donationSaved.setType(donationEntity.getType());
             donationSaved.setAmount(donationEntity.getAmount());
@@ -170,7 +176,7 @@ public class DonationServiceImpl implements DonationService {
 
             // Only set disasterId if the disaster is not null
             if (donationEntity.getDisasterEntity() != null) {
-                donationSaved.setDisasterId(donationEntity.getDisasterEntity().getTId());
+                donationSaved.setDisasterId(donationEntity.getDisasterEntity().getId());
             }else{
                 donationSaved.setDisasterId(null);
             }
@@ -201,7 +207,7 @@ public class DonationServiceImpl implements DonationService {
 
 
             logger.info("donationEntity: {}", donationEntity);
-            donationEntity.setTId(donationDTO.getId());
+            donationEntity.setId(donationDTO.getId());
 
 
             ObjectMapper objectMapper = new ObjectMapper();
@@ -210,7 +216,7 @@ public class DonationServiceImpl implements DonationService {
             String json = objectMapper.writeValueAsString(donationEntity);
 
             DonationDisasterResponseDTO donationDisasterResponseDTO = (DonationDisasterResponseDTO) utils.setJsonStringToObject(json.toString(), DonationDisasterResponseDTO.class);
-            donationDisasterResponseDTO.setId(donationEntity.getTId());
+            donationDisasterResponseDTO.setId(donationEntity.getId());
             logger.info("donationDisasterResponseDTO: {}", donationDisasterResponseDTO);
 
             ResponseStatus responseStatus = new ResponseStatus();
@@ -242,5 +248,242 @@ public class DonationServiceImpl implements DonationService {
             logger.error("Unexpected error while listing all donations: {}", e.getMessage());
             throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public ResponseEntity<?> getDonationByIdOrStatusOrDisasterId(DonationDTO donationDTO) {
+        try {
+            Long id = donationDTO.getId();
+            Boolean status = donationDTO.getStatus();
+            Long disasterId = donationDTO.getDisasterId();
+
+            DonationEntity donationEntity = null;
+            if (id != null) {
+                donationEntity = donationRepository.findById(id)
+                        .orElseThrow(() -> new CustomAuthenticationException("Donation not found with id: " + id,null));
+            } else if (status != null) {
+                List<DonationEntity> donationEntities = donationRepository.findByStatus(status);
+                if (!donationEntities.isEmpty()) {
+                    donationEntity = donationEntities.get(0); // Assuming you need only one
+                } else {
+                    throw new EntityNotFoundException("No donations found with status: " + status);
+                }
+            } else if (disasterId != null) {
+                List<DonationEntity> donationEntities = donationRepository.findByDisasterEntityId(disasterId);
+                if (!donationEntities.isEmpty()) {
+                    donationEntity = donationEntities.get(0); // Assuming you need only one
+                } else {
+                    throw new EntityNotFoundException("No donations found for disaster with id: " + disasterId);
+                }
+            } else {
+                throw new IllegalArgumentException("Either id, status, or disasterId must be provided");
+            }
+
+            // Mapping to DTO
+            DonationDisasterResponseDTO donationDisasterResponseDTO = mapToDTO(donationEntity);
+
+            // Setting response status
+            ResponseStatus responseStatus = new ResponseStatus();
+            responseStatus.setResponseCode("200");
+            responseStatus.setResponseDesc("Donation fetched successfully");
+            donationDisasterResponseDTO.setResponseStatus(responseStatus);
+
+            return ResponseEntity.ok().body(donationDisasterResponseDTO);
+        } catch (DataAccessException e) {
+            logger.error("Database error while fetching donation: {}", e.getMessage());
+            throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
+        } catch (EntityNotFoundException e) {
+            logger.error("Entity not found while fetching donation: {}", e.getMessage());
+            throw new CustomAuthenticationException("Entity not found: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected error while fetching donation: {}", e.getMessage());
+            throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
+        }
+    }
+
+    private DonationDisasterResponseDTO mapToDTO(DonationEntity donationEntity) {
+        DonationDisasterResponseDTO donationDisasterResponseDTO = new DonationDisasterResponseDTO();
+        donationDisasterResponseDTO.setId(donationEntity.getId());
+        donationDisasterResponseDTO.setDonorName(donationEntity.getDonorName());
+        donationDisasterResponseDTO.setType(donationEntity.getType());
+        donationDisasterResponseDTO.setAmount(donationEntity.getAmount());
+        donationDisasterResponseDTO.setCommodityName(donationEntity.getCommodityName());
+        donationDisasterResponseDTO.setQuantity(donationEntity.getQuantity());
+        donationDisasterResponseDTO.setStatus(donationEntity.getStatus());
+
+        // Mapping DisasterEntity
+        DonationDisasterResponseDTO.DisasterEntity disasterEntityDTO = new DonationDisasterResponseDTO.DisasterEntity();
+        DisasterEntity disasterEntity = donationEntity.getDisasterEntity();
+        if (disasterEntity != null) {
+            disasterEntityDTO.setTId(disasterEntity.getId());
+            disasterEntityDTO.setName(disasterEntity.getName());
+            disasterEntityDTO.setDescription(disasterEntity.getDescription());
+            disasterEntityDTO.setDate(disasterEntity.getDate());
+            disasterEntityDTO.setStatus(disasterEntity.getStatus());
+        }
+        donationDisasterResponseDTO.setDisasterEntity(disasterEntityDTO);
+
+        return donationDisasterResponseDTO;
+    }
+
+    private boolean canDistributeFurther(DonationEntity donationEntity, DonationDistributionDTO donationDistributionDTO) {
+        // Calculate remaining quantity or amount
+        Integer remainingQuantity = donationEntity.getQuantity() - getAlreadyDistributedQuantity(donationEntity);
+        Double remainingAmount = donationEntity.getAmount() - getAlreadyDistributedAmount(donationEntity);
+
+        // Check against intended distribution quantity or amount
+        if ("money".equals(donationEntity.getType())) {
+            return remainingAmount >= donationDistributionDTO.getAmountDistributed();
+        } else if ("commodity".equals(donationEntity.getType())) {
+            return remainingQuantity >= donationDistributionDTO.getQuantityDistributed();
+        } else {
+            // Handle other types or throw an exception if type is unknown
+            throw new IllegalArgumentException("Unknown donation type: " + donationEntity.getType());
+        }
+    }
+
+    private Integer getAlreadyDistributedQuantity(DonationEntity donationEntity) {
+        // Example: Fetch already distributed quantity from DonationDistributionEntity
+        List<DonationDistributionEntity> distributions = donationDistributionRepository.findByDonationId(donationEntity.getId());
+        int alreadyDistributedQuantity = distributions.stream().mapToInt(DonationDistributionEntity::getQuantityDistributed).sum();
+        return alreadyDistributedQuantity;
+    }
+
+    private Double getAlreadyDistributedAmount(DonationEntity donationEntity) {
+        // Example: Fetch already distributed amount from DonationDistributionEntity
+        List<DonationDistributionEntity> distributions = donationDistributionRepository.findByDonationId(donationEntity.getId());
+        double alreadyDistributedAmount = distributions.stream().mapToDouble(DonationDistributionEntity::getAmountDistributed).sum();
+        return alreadyDistributedAmount;
+    }
+
+    @Override
+    public ResponseEntity<?> createDonationDistribution(DonationDistributionDTO donationDistributionDTO) {
+        try {
+            // Fetch the donation entity
+            DonationEntity donationEntity = donationRepository.findById(donationDistributionDTO.getDonationId())
+                    .orElseThrow(() -> new EntityNotFoundException("Donation not found with id: " + donationDistributionDTO.getDonationId()));
+
+            // Check if donation can be distributed further
+            boolean canDistribute = canDistributeFurther(donationEntity, donationDistributionDTO);
+
+            if (canDistribute) {
+                DonationDistributionEntity donationDistributionEntity = mapDonationDistributionToEntity(donationDistributionDTO);
+                DonationDistributionEntity savedEntity = donationDistributionRepository.save(donationDistributionEntity);
+                DonationDistributionDTO savedDTO = mapDonationDistributionToDTO(savedEntity);
+                return ResponseEntity.ok().body(savedDTO);
+            } else {
+                return ResponseEntity.badRequest().body("Cannot distribute further due to insufficient quantity or amount.");
+            }
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to create donation distribution: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> updateDonationDistribution(Long id, DonationDistributionDTO donationDistributionDTO) {
+        try {
+            DonationDistributionEntity existingEntity = donationDistributionRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Donation distribution not found with id: " + id));
+
+            updateDonationDistributionEntityFromDTO(existingEntity, donationDistributionDTO);
+
+            DonationDistributionEntity updatedEntity = donationDistributionRepository.save(existingEntity);
+            DonationDistributionDTO updatedDTO = mapDonationDistributionToDTO(updatedEntity);
+            return ResponseEntity.ok().body(updatedDTO);
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to update donation distribution: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> deleteDonationDistribution(Long id) {
+        try {
+            DonationDistributionEntity existingEntity = donationDistributionRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Donation distribution not found with id: " + id));
+
+            donationDistributionRepository.delete(existingEntity);
+            return ResponseEntity.ok().body("Donation distribution deleted successfully");
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to delete donation distribution: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getDonationDistributionById(Long id) {
+        try {
+            DonationDistributionEntity donationDistributionEntity = donationDistributionRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Donation distribution not found with id: " + id));
+
+            DonationDistributionDTO donationDistributionDTO = mapDonationDistributionToDTO(donationDistributionEntity);
+            return ResponseEntity.ok().body(donationDistributionDTO);
+        } catch (EntityNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch donation distribution: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getAllDonationDistributions() {
+        try {
+            Iterable<DonationDistributionEntity> donationDistributionEntities = donationDistributionRepository.findAll();
+            List<DonationDistributionDTO> donationDistributionDTOs = StreamSupport.stream(donationDistributionEntities.spliterator(), false)
+                    .map(this::mapDonationDistributionToDTO)
+                    .collect(Collectors.toList());
+            return ResponseEntity.ok().body(donationDistributionDTOs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to fetch all donation distributions: " + e.getMessage());
+        }
+    }
+
+    private DonationDistributionEntity mapDonationDistributionToEntity(DonationDistributionDTO dto) {
+        DonationDistributionEntity entity = new DonationDistributionEntity();
+        entity.setRecipientName(dto.getRecipientName());
+        entity.setAmountDistributed(dto.getAmountDistributed());
+        entity.setQuantityDistributed(dto.getQuantityDistributed());
+        // Mapping to DonationEntity if needed
+        // entity.setDonation(...);
+        return entity;
+    }
+
+    private DonationDistributionDTO mapDonationDistributionToDTO(DonationDistributionEntity entity) {
+        DonationDistributionDTO dto = new DonationDistributionDTO();
+        dto.setId(entity.getId());
+        dto.setRecipientName(entity.getRecipientName());
+        dto.setAmountDistributed(entity.getAmountDistributed());
+        dto.setQuantityDistributed(entity.getQuantityDistributed());
+
+        // Fetch and map fields from DonationEntity
+        DonationEntity donationEntity = entity.getDonation();
+        if (donationEntity != null) {
+            dto.setDonationId(donationEntity.getId());
+            dto.setDonorName(donationEntity.getDonorName());
+            dto.setDonationType(donationEntity.getType());
+            dto.setDonationAmount(donationEntity.getAmount());
+            dto.setCommodityName(donationEntity.getCommodityName());
+            dto.setDonationQuantity(donationEntity.getQuantity());
+            dto.setDonationStatus(donationEntity.getStatus());
+        }
+
+        return dto;
+    }
+
+    private void updateDonationDistributionEntityFromDTO(DonationDistributionEntity entity, DonationDistributionDTO dto) {
+        entity.setRecipientName(dto.getRecipientName());
+        entity.setAmountDistributed(dto.getAmountDistributed());
+        entity.setQuantityDistributed(dto.getQuantityDistributed());
+        // Update DonationEntity if needed
+        // entity.getDonation().set...();
     }
 }

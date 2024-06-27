@@ -18,7 +18,7 @@ public class RolePermissionDTO {
         this.roleId = roleId;
         this.roleName = roleName;
         this.permissions = permissionEntities.stream()
-                .map(permission -> new PermissionDTO(permission.getTId(), permission.getPermissionName(), permission.getPermissionDescription()))
+                .map(permission -> new PermissionDTO(permission.getId(), permission.getPermissionName(), permission.getPermissionDescription()))
                 .collect(Collectors.toSet());
     }
 

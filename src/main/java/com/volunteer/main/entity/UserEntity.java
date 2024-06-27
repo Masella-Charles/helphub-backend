@@ -27,7 +27,7 @@ public class UserEntity implements UserDetails {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "USERS_SEQ")
     @SequenceGenerator(name = "USERS_SEQ", sequenceName = "USERS_SEQ", allocationSize = 1)
     @Column(name = "T_ID")
-    private Long tId;
+    private Long id;
 
     @Column(nullable = false)
     private String fullName;

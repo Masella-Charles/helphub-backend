@@ -42,7 +42,7 @@ public class PermissionServiceImpl implements PermissionService {
 
             // Convert the saved entity back to DTO
             PermissionDTO savedPermissionDTO = new PermissionDTO();
-            savedPermissionDTO.setId(permissionEntity.getTId());
+            savedPermissionDTO.setId(permissionEntity.getId());
             savedPermissionDTO.setPermissionName(permissionEntity.getPermissionName());
             savedPermissionDTO.setPermissionDescription(permissionEntity.getPermissionDescription());
 
@@ -102,7 +102,7 @@ public class PermissionServiceImpl implements PermissionService {
 
             // Convert the updated entity to DTO
             PermissionDTO updatedPermissionDTO = new PermissionDTO();
-            updatedPermissionDTO.setId(existingPermission.getTId());
+            updatedPermissionDTO.setId(existingPermission.getId());
             updatedPermissionDTO.setPermissionName(existingPermission.getPermissionName());
             updatedPermissionDTO.setPermissionDescription(existingPermission.getPermissionDescription());
 
@@ -169,7 +169,7 @@ public class PermissionServiceImpl implements PermissionService {
 
             // Construct the permissionDTO
             PermissionDTO permissionDTO = new PermissionDTO();
-            permissionDTO.setId(permissionToDelete.getTId());
+            permissionDTO.setId(permissionToDelete.getId());
             permissionDTO.setPermissionName(permissionToDelete.getPermissionName());
             permissionDTO.setPermissionDescription(permissionToDelete.getPermissionDescription());
             responseDTO.setPermissionDTO(permissionDTO);

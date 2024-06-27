@@ -59,7 +59,7 @@ public class VolunteerServiceImpl implements VolunteerService {
             // Map VolunteerEntity to VolunteerDto
             ModelMapper modelMapper = new ModelMapper();
             VolunteerDto volunteerDto1 = modelMapper.map(volunteer, VolunteerDto.class);
-            volunteerDto1.setId(volunteer.getTId());
+            volunteerDto1.setId(volunteer.getId());
             volunteerDto1.setName(userEntityOptional.get().getFullName()); // Assuming you want to include the user's name
 
             // Prepare response
@@ -119,12 +119,12 @@ public class VolunteerServiceImpl implements VolunteerService {
 
             // Prepare the response DTO
             VolunteerDto updatedVolunteerDto = new VolunteerDto();
-            updatedVolunteerDto.setId(existingVolunteer.getTId());
+            updatedVolunteerDto.setId(existingVolunteer.getId());
             updatedVolunteerDto.setName(existingVolunteer.getUser().getFullName()); // Assuming you want to include the user's name
             updatedVolunteerDto.setPhone(existingVolunteer.getPhone());
             updatedVolunteerDto.setEmail(existingVolunteer.getUser().getEmail());
             updatedVolunteerDto.setAdditionalInfo(existingVolunteer.getAdditionalInfo());
-            updatedVolunteerDto.setUserId(Math.toIntExact(existingVolunteer.getUser().getTId()));
+            updatedVolunteerDto.setUserId(Math.toIntExact(existingVolunteer.getUser().getId()));
 
             ResponseStatus responseStatus = new ResponseStatus();
             responseStatus.setResponseCode("200");

@@ -19,7 +19,7 @@ public class RoleEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "VOLUNTEER_ROLE_SEQ")
     @SequenceGenerator(name = "VOLUNTEER_ROLE_SEQ", sequenceName = "VOLUNTEER_ROLE_SEQ", allocationSize = 1)
     @Column(name = "T_ID")
-    private Long tId;
+    private Long id;
 
     @Column(name = "ROLE_NAME", unique = true, nullable = false)
     private String roleName;

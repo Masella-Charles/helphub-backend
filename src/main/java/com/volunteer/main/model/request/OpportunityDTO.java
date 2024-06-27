@@ -13,5 +13,6 @@ public class OpportunityDTO {
     private Integer requiredVolunteers;
     private Double hours;
     private Boolean status;
+    private byte[] opportunityImage;
     private Long disasterId;
 }

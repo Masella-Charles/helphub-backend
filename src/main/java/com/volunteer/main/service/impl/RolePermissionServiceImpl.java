@@ -72,7 +72,7 @@ public class RolePermissionServiceImpl implements RolePermissionService {
             roleRepository.save(role);
 
             RolePermissionDTO updatedRolePermissions = new RolePermissionDTO(
-                    role.getTId(),
+                    role.getId(),
                     role.getRoleName(),
                     role.getPermissionEntities()
             );
@@ -116,7 +116,7 @@ public class RolePermissionServiceImpl implements RolePermissionService {
             Set<PermissionEntity> permissions = role.getPermissionEntities();
 
             RolePermissionDTO rolePermissionDTO = new RolePermissionDTO(
-                    role.getTId(),
+                    role.getId(),
                     role.getRoleName(),
                     permissions
             );
@@ -135,7 +135,7 @@ public class RolePermissionServiceImpl implements RolePermissionService {
             List<RoleEntity> roles = roleRepository.findAllWithPermissions();
             logger.info("List of roles: {}", roles);
             List<RolePermissionDTO> rolePermissions = roles.stream()
-                    .map(role -> new RolePermissionDTO(role.getTId(), role.getRoleName(), role.getPermissionEntities()))
+                    .map(role -> new RolePermissionDTO(role.getId(), role.getRoleName(), role.getPermissionEntities()))
                     .collect(Collectors.toList());
 
             return ResponseEntity.ok().body(rolePermissions);

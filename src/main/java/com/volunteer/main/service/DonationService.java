@@ -1,10 +1,9 @@
 package com.volunteer.main.service;
 
 
-import com.volunteer.main.entity.DisasterEntity;
 import com.volunteer.main.entity.DonationEntity;
-import com.volunteer.main.model.request.DisasterDTO;
 import com.volunteer.main.model.request.DonationDTO;
+import com.volunteer.main.model.request.DonationDistributionDTO;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -17,4 +16,11 @@ public interface DonationService {
     ResponseEntity<?> transitionDonation(DonationDTO donationDTO);
     ResponseEntity<?> getDonationById(DonationDTO donationDTO);
     List<DonationEntity> getAllDonations();
+    ResponseEntity<?> getDonationByIdOrStatusOrDisasterId(DonationDTO donationDTO);
+
+    ResponseEntity<?> createDonationDistribution(DonationDistributionDTO donationDistributionDTO);
+    ResponseEntity<?> updateDonationDistribution(Long id, DonationDistributionDTO donationDistributionDTO);
+    ResponseEntity<?> deleteDonationDistribution(Long id);
+    ResponseEntity<?> getDonationDistributionById(Long id);
+    ResponseEntity<?> getAllDonationDistributions();
 }
