@@ -6,12 +6,12 @@ import lombok.Data;
 import java.time.LocalDate;
 
 @Entity
-@Table(name="DISASTERS")
+@Table(name="DONATION_DISTRIBUTION")
 @Data
 public class DonationDistributionEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DISASTERS_REQ")
-    @SequenceGenerator(name = "DISASTERS_REQ", sequenceName = "DISASTERS_REQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "DONATION_DISTRIBUTION_REQ")
+    @SequenceGenerator(name = "DONATION_DISTRIBUTION_REQ", sequenceName = "DONATION_DISTRIBUTION_REQ", allocationSize = 1)
     @Column(name= "T_ID")
     private Long id;
 

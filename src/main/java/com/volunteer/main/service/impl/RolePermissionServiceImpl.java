@@ -128,11 +128,13 @@ public class RolePermissionServiceImpl implements RolePermissionService {
         }
     }
 
+
+
     @Override
     public ResponseEntity<?> getAllRolePermissions() {
         try {
-            //List<RoleEntity> roles = (List<RoleEntity>) roleRepository.findAll();
-            List<RoleEntity> roles = roleRepository.findAllWithPermissions();
+            List<RoleEntity> roles = (List<RoleEntity>) roleRepository.findAll();
+//            List<RoleEntity> roles = roleRepository.findAllWithPermissions();
             logger.info("List of roles: {}", roles);
             List<RolePermissionDTO> rolePermissions = roles.stream()
                     .map(role -> new RolePermissionDTO(role.getId(), role.getRoleName(), role.getPermissionEntities()))

@@ -358,25 +358,30 @@ public class DonationServiceImpl implements DonationService {
 
     @Override
     public ResponseEntity<?> createDonationDistribution(DonationDistributionDTO donationDistributionDTO) {
+        logger.info("Creating donation distribution for DTO: {}", donationDistributionDTO);
         try {
-            // Fetch the donation entity
             DonationEntity donationEntity = donationRepository.findById(donationDistributionDTO.getDonationId())
                     .orElseThrow(() -> new EntityNotFoundException("Donation not found with id: " + donationDistributionDTO.getDonationId()));
 
-            // Check if donation can be distributed further
-            boolean canDistribute = canDistributeFurther(donationEntity, donationDistributionDTO);
+            logger.info("Found donation entity: {}", donationEntity);
 
-            if (canDistribute) {
-                DonationDistributionEntity donationDistributionEntity = mapDonationDistributionToEntity(donationDistributionDTO);
-                DonationDistributionEntity savedEntity = donationDistributionRepository.save(donationDistributionEntity);
-                DonationDistributionDTO savedDTO = mapDonationDistributionToDTO(savedEntity);
-                return ResponseEntity.ok().body(savedDTO);
-            } else {
-                return ResponseEntity.badRequest().body("Cannot distribute further due to insufficient quantity or amount.");
-            }
+            DonationDistributionEntity donationDistributionEntity = new DonationDistributionEntity();
+            donationDistributionEntity.setRecipientName(donationDistributionDTO.getRecipientName());
+            donationDistributionEntity.setAmountDistributed(donationDistributionDTO.getAmountDistributed());
+            donationDistributionEntity.setQuantityDistributed(donationDistributionDTO.getQuantityDistributed());
+            donationDistributionEntity.setDonation(donationEntity);
+
+            DonationDistributionEntity savedEntity = donationDistributionRepository.save(donationDistributionEntity);
+
+            logger.info("Saved donation distribution entity: {}", savedEntity);
+
+            DonationDistributionDTO savedDTO = mapDonationDistributionToDTO(savedEntity);
+            return ResponseEntity.ok().body(savedDTO);
         } catch (EntityNotFoundException e) {
+            logger.error("Error creating donation distribution: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            logger.error("Unexpected error creating donation distribution: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to create donation distribution: " + e.getMessage());
         }
@@ -408,12 +413,13 @@ public class DonationServiceImpl implements DonationService {
                     .orElseThrow(() -> new EntityNotFoundException("Donation distribution not found with id: " + id));
 
             donationDistributionRepository.delete(existingEntity);
-            return ResponseEntity.ok().body("Donation distribution deleted successfully");
+            return ResponseEntity.ok()
+                    .body("{\"responseEntity\": {\"status\": 200, \"body\": \"Donation distribution deleted successfully\"}}");
         } catch (EntityNotFoundException e) {
             throw e;
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to delete donation distribution: " + e.getMessage());
+                    .body("{\"responseEntity\": {\"status\": 500, \"body\": \"Failed to delete donation distribution: " + e.getMessage() + "\"}}");
         }
     }
 

@@ -26,13 +26,10 @@ public class DonationController {
         this.donationService = donationService;
     }
 
-    @RequestMapping(value = {"/create", "/list", "/get", "/update","/transition",
-            "/createDistribution", "/listDistribution", "/getDistribution", "/updateDistribution",
-            "/deleteDistribution"},
+    @RequestMapping(value = {"/create", "/list", "/get", "/update","/transition"},
             method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<?> handlePermissionRequest(HttpServletRequest httpServletRequest ,
                                                      @RequestBody(required = false) @Valid DonationDTO donationDTO,
-                                                     @RequestBody(required = false) @Valid DonationDistributionDTO donationDistributionDTO,
                                                      @RequestParam(name = "id", required = false) Long id,
                                                      @RequestHeader HttpHeaders headers){
 
@@ -55,11 +52,6 @@ public class DonationController {
             case "/api/v1/donation/get" -> getDonationByIdOrStatusOrDisasterId(donationDTO);
             case "/api/v1/donation/update" -> updateDonation(donationDTO);
             case "/api/v1/donation/transition" -> transitionDonation(donationDTO);
-            case "/api/v1/donation/createDistribution" -> createDonationDistribution(donationDistributionDTO);
-            case "/api/v1/donation/listDistribution" -> getAllDonationDistributions();
-            case "/api/v1/donation/getDistribution" -> getDonationDistributionById(id);
-            case "/api/v1/donation/updateDistribution" -> updateDonationDistribution(id,donationDistributionDTO);
-            case "/api/v1/donation/deleteDistribution" -> deleteDonationDistribution(id);
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
         };
 
@@ -91,23 +83,5 @@ public class DonationController {
         return donationService.transitionDonation(donationDTO);
     }
 
-    public ResponseEntity<?> createDonationDistribution(DonationDistributionDTO donationDistributionDTO) {
-        return donationService.createDonationDistribution(donationDistributionDTO);
-    }
 
-    public ResponseEntity<?> updateDonationDistribution( Long id, DonationDistributionDTO donationDistributionDTO) {
-        return donationService.updateDonationDistribution(id, donationDistributionDTO);
-    }
-
-    public ResponseEntity<?> deleteDonationDistribution(Long id) {
-        return donationService.deleteDonationDistribution(id);
-    }
-
-    public ResponseEntity<?> getDonationDistributionById(Long id) {
-        return donationService.getDonationDistributionById(id);
-    }
-
-    public ResponseEntity<?> getAllDonationDistributions() {
-        return donationService.getAllDonationDistributions();
-    }
 }

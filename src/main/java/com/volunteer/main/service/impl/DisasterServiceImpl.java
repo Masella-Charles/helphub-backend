@@ -187,26 +187,32 @@ public class DisasterServiceImpl implements DisasterService {
 
     @Override
     public ResponseEntity<?> getDisasterByIdOrStatus(Long id, Boolean status) {
+        logger.info("Fetching disaster by ID: {} or status: {}", id, status);
         try {
-            Optional<DisasterEntity> disasterEntityOptional = disasterRepository.findByIdOrStatus(id, status);
-            DisasterEntity disasterEntity = disasterEntityOptional.orElseThrow(() -> {
-                if (id != null) {
-                    return new EntityNotFoundException("Disaster not found with ID: " + id);
-                } else {
-                    return new EntityNotFoundException("Disaster not found with status: " + status);
-                }
-            });
+            List<DisasterEntity> disasterEntities = disasterRepository.findByIdOrStatus(id, status);
+            logger.info("Disasters fetched: {}", disasterEntities.isEmpty() ? "None" : disasterEntities);
 
-            // Map entity to DTO if needed
-            DisasterDTO disasterDTO = mapToDTO(disasterEntity);
+            if (disasterEntities.isEmpty()) {
+                throw new EntityNotFoundException(id != null ?
+                        "Disaster not found with ID: " + id :
+                        "Disaster not found with status: " + status);
+            }
 
-            return ResponseEntity.ok().body(disasterDTO);
+            // Map entities to DTOs if needed
+            List<DisasterDTO> disasterDTOs = disasterEntities.stream()
+                    .map(this::mapToDTO)
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok().body(disasterDTOs);
         } catch (EntityNotFoundException e) {
+            logger.error("Entity not found exception: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            logger.error("Unexpected error: {}", e.getMessage());
             throw new CustomAuthenticationException("Failed to get disaster: " + e.getMessage(), e);
         }
     }
+
 
     @Override
     public List<DisasterEntity> getAllDisasters() {

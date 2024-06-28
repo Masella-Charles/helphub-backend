@@ -48,9 +48,9 @@ public class PermissionController {
         return switch (path) {
             case "/api/v1/permission/create" -> createPermission(permissionDTO);
             case "/api/v1/permission/list" -> listAllPermissions();
-            case "/api/v1/permission/get" -> getPermissionById(id, permissionDTO);
+            case "/api/v1/permission/get" -> getPermissionById(permissionDTO);
             case "/api/v1/permission/update" -> updatePermission(permissionDTO);
-            case "/api/v1/permission/delete" -> deletePermissionById(id, permissionDTO);
+            case "/api/v1/permission/delete" -> deletePermissionById(permissionDTO);
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
         };
 
@@ -68,12 +68,8 @@ public class PermissionController {
     }
 
 
-    private ResponseEntity<?> getPermissionById(Long id, PermissionDTO permissionDTO) {
-        if (permissionDTO != null && permissionDTO.getId() != null && !permissionDTO.getId().equals(id)) {
-            // Handle mismatched IDs between path variable and request body
-            return ResponseEntity.badRequest().body("Mismatched ID");
-        }
-        // Implement your logic to get a permission by ID
+    private ResponseEntity<?> getPermissionById(PermissionDTO permissionDTO) {
+        Long id = permissionDTO.getId();
         PermissionEntity permissionEntity = permissionservice.getPermissionById(id);
         return ResponseEntity.ok(permissionEntity);
     }
@@ -83,11 +79,8 @@ public class PermissionController {
         return permissionservice.updatePermission(permissionDTO);
     }
 
-    private ResponseEntity<?> deletePermissionById(Long id, PermissionDTO permissionDTO) {
-        if (permissionDTO != null && permissionDTO.getId() != null && !permissionDTO.getId().equals(id)) {
-            // Handle mismatched IDs between path variable and request body
-            return ResponseEntity.badRequest().body("Mismatched ID");
-        }
+    private ResponseEntity<?> deletePermissionById(PermissionDTO permissionDTO) {
+        Long id = permissionDTO.getId();
         return permissionservice.deletePermissionById(id);
     }
 }

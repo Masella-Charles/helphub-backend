@@ -22,8 +22,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -41,7 +40,6 @@ public class VolunteerServiceImpl implements VolunteerService {
     }
 
     @Override
-
     public ResponseEntity<?> createVolunteer(VolunteerDto volunteerDto) {
         try {
             Optional<UserEntity> userEntityOptional = userRepository.findById(volunteerDto.getUserId());
@@ -53,6 +51,7 @@ public class VolunteerServiceImpl implements VolunteerService {
             volunteer.setUser(userEntityOptional.get());
             volunteer.setPhone(volunteerDto.getPhone());
             volunteer.setAdditionalInfo(volunteerDto.getAdditionalInfo());
+            volunteer.setSkills(new HashSet<>(volunteerDto.getSkills()));
             volunteer.setStatus(false);
             volunteer = volunteerRepository.save(volunteer);
 
@@ -114,6 +113,8 @@ public class VolunteerServiceImpl implements VolunteerService {
             // Exclude copying id and status (assuming status should not be updated)
             BeanUtils.copyProperties(volunteerDto, existingVolunteer, "id", "status");
 
+            existingVolunteer.setSkills(new HashSet<>(volunteerDto.getSkills()));
+
             // Save the updated volunteer entity
             volunteerRepository.save(existingVolunteer);
 
@@ -124,6 +125,7 @@ public class VolunteerServiceImpl implements VolunteerService {
             updatedVolunteerDto.setPhone(existingVolunteer.getPhone());
             updatedVolunteerDto.setEmail(existingVolunteer.getUser().getEmail());
             updatedVolunteerDto.setAdditionalInfo(existingVolunteer.getAdditionalInfo());
+            updatedVolunteerDto.setSkills(new ArrayList<>(existingVolunteer.getSkills()));
             updatedVolunteerDto.setUserId(Math.toIntExact(existingVolunteer.getUser().getId()));
 
             ResponseStatus responseStatus = new ResponseStatus();

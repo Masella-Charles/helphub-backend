@@ -3,6 +3,7 @@ package com.volunteer.main.controller;
 
 import com.volunteer.main.entity.RoleEntity;
 import com.volunteer.main.model.request.RoleDTO;
+import com.volunteer.main.model.request.RolePermissionDTO;
 import com.volunteer.main.service.RoleService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -48,9 +49,9 @@ public class RoleController {
         return switch (path) {
             case "/api/v1/role/create" -> createRole(roleDTO);
             case "/api/v1/role/list" -> listAllRoles();
-            case "/api/v1/role/get" -> getRoleById(id, roleDTO);
+            case "/api/v1/role/get" -> getRoleById(roleDTO);
             case "/api/v1/role/update" -> updateRole(roleDTO);
-            case "/api/v1/role/delete" -> deleteRoleById(id, roleDTO);
+            case "/api/v1/role/delete" -> deleteRoleById(roleDTO);
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
         };
 
@@ -67,12 +68,8 @@ public class RoleController {
         return ResponseEntity.ok(roleEntities);
     }
 
-    private ResponseEntity<?> getRoleById(Long id, RoleDTO roleDTO) {
-        if (roleDTO != null && roleDTO.getId() != null && !roleDTO.getId().equals(id)) {
-            // Handle mismatched IDs between path variable and request body
-            return ResponseEntity.badRequest().body("Mismatched ID");
-        }
-        // Implement your logic to get a permission by ID
+    private ResponseEntity<?> getRoleById(RoleDTO roleDTO) {
+        Long id = roleDTO.getId();
         RoleEntity roleEntity = roleService.getRoleById(id);
         return ResponseEntity.ok(roleEntity);
     }
@@ -82,11 +79,8 @@ public class RoleController {
         return roleService.updateRole(roleDTO);
     }
 
-    private ResponseEntity<?> deleteRoleById(Long id, RoleDTO roleDTO) {
-        if (roleDTO != null && roleDTO.getId() != null && !roleDTO.getId().equals(id)) {
-            // Handle mismatched IDs between path variable and request body
-            return ResponseEntity.badRequest().body("Mismatched ID");
-        }
+    private ResponseEntity<?> deleteRoleById(RoleDTO roleDTO) {
+        Long id = roleDTO.getId();
         return roleService.deleteRoleById(id);
     }
 }

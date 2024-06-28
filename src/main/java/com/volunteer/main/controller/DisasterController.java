@@ -51,7 +51,7 @@ public class DisasterController {
         return switch (path) {
             case "/api/v1/disaster/create" -> createDisaster(disasterDTO);
             case "/api/v1/disaster/list" -> getAllDisasters();
-            case "/api/v1/disaster/get" -> getDisasterByIdOrStatus(id,status);
+            case "/api/v1/disaster/get" -> getDisasterByIdOrStatus(disasterDTO);
             case "/api/v1/disaster/update" -> updateDisaster(disasterDTO);
             case "/api/v1/disaster/transition" -> transitionDisaster(disasterDTO);
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
@@ -73,7 +73,9 @@ public class DisasterController {
         return disasterService.getDisasterById(disasterDTO);
     }
 
-    private ResponseEntity<?> getDisasterByIdOrStatus(Long id, Boolean status) {
+    private ResponseEntity<?> getDisasterByIdOrStatus(DisasterDTO disasterDTO) {
+        Long id = disasterDTO.getId();
+        Boolean status = disasterDTO.getStatus();
         return disasterService.getDisasterByIdOrStatus(id,status);
     }
 
