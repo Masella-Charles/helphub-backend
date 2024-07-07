@@ -8,6 +8,7 @@ import java.util.List;
 
 @Data
 public class OpportunityUserDTO {
+    private Long id;
     private ResponseStatus responseStatus;
     private Long userId;
     private String userName;

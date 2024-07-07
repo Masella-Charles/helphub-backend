@@ -264,7 +264,7 @@ public class TestimonialServiceImpl implements TestimonialService {
         userEntityDTO.setCreatedAt(testimonialEntity.getUser().getCreatedAt());
         userEntityDTO.setUpdatedAt(testimonialEntity.getUser().getUpdatedAt());
         userEntityDTO.setRole(testimonialEntity.getUser().getRole());
-        userEntityDTO.setVolunteer(testimonialEntity.getUser().getVolunteer());
+//        userEntityDTO.setVolunteer(testimonialEntity.getUser().getVolunteer());
 
         dto.setUserEntity(userEntityDTO);
 

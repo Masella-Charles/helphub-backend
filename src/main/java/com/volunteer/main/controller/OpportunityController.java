@@ -64,10 +64,6 @@ public class OpportunityController {
             case "/api/v1/opportunity/get" -> getOpportunitiesByIdStatusOrDisasterId(id,status,-disasterId);
             case "/api/v1/opportunity/update" -> updateOpportunity(opportunityDTO,opportunityImage);
             case "/api/v1/opportunity/transition" -> transitionOpportunity(opportunityDTO);
-            case "/api/v1/opportunity/volunteerNow" -> volunteerNow(userId,opportunityId);
-            case "/api/v1/opportunity/volunteerTransition" -> volunteerTransition(userId,opportunityId,status);
-            case "/api/v1/opportunity/getOpportunityUser" -> getOpportunityUser(id,status,userId,opportunityId);
-            case "/api/v1/opportunity/listOpportunityUser" -> getAllOpportunityUsers();
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
         };
 
@@ -95,31 +91,5 @@ public class OpportunityController {
 
     private ResponseEntity<?> transitionOpportunity(OpportunityDTO opportunityDTO) {
         return opportunityService.transitionOpportunity(opportunityDTO);
-    }
-
-    public ResponseEntity<?> volunteerNow(Long userId, Long opportunityId) {
-        logger.info("Volunteer Now request: userId={}, opportunityId={}", userId, opportunityId);
-        OpportunityUserDTO response = opportunityService.volunteerNow(userId, opportunityId);
-        return ResponseEntity.ok(response);
-    }
-
-    public ResponseEntity<?> volunteerTransition(Long userId, Long opportunityId,Boolean status) {
-        logger.info("Volunteer Transition request: userId={}, opportunityId={}, opportunityId={}", userId, opportunityId,status);
-        OpportunityUserDTO response = opportunityService.volunteerTransition(userId, opportunityId,status);
-        return ResponseEntity.ok(response);
-    }
-
-    public ResponseEntity<?> getOpportunityUser(Long id, Boolean status,Long userId, Long opportunityId) {
-        Object response = opportunityService.getOpportunityUserByIdOrStatusOrUserIdOrOpportunityId(id, status, userId, opportunityId);
-        if (response instanceof List) {
-            return ResponseEntity.ok((List<OpportunityUserDTO>) response);
-        } else {
-            return ResponseEntity.ok((OpportunityUserDTO) response);
-        }
-    }
-
-    public ResponseEntity<?> getAllOpportunityUsers() {
-        List<OpportunityUserDTO> response = opportunityService.getAllOpportunityUsers();
-        return ResponseEntity.ok(response);
     }
 }

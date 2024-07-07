@@ -21,5 +21,10 @@ public interface OpportunityUserRepository extends CrudRepository<OpportunityUse
     List<OpportunityUserEntity> findByOpportunityId(Long opportunityId);
     List<OpportunityUserEntity> findAll();
 
+    long countByOpportunityId(Long opportunityId);
+
+    @Query("SELECT COUNT(oue) FROM OpportunityUserEntity oue WHERE oue.opportunity.id = :opportunityId AND oue.status = true")
+    long countByOpportunityIdAndStatusTrue(@Param("opportunityId") Long opportunityId);
+
     Optional<OpportunityUserEntity> findByUserIdAndOpportunityId(Long userId,Long opportunityId);
 }

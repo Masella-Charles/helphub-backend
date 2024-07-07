@@ -31,24 +31,29 @@ public class RoleEntity {
     @JsonBackReference
     private Set<UserEntity> users = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "role_permission",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
-    private Set<PermissionEntity> permissionEntities = new HashSet<>();
 
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        List<GrantedAuthority> authorities = new ArrayList<>();
-        for (PermissionEntity permission : permissionEntities) {
-            authorities.add(new GrantedAuthority() {
-                @Override
-                public String getAuthority() {
-                    return permission.getPermissionName();
-                }
-            });
-        }
-        return authorities;
-    }
+    @ManyToOne
+    @JoinColumn(name = "permission_id")
+    private PermissionEntity permission;
+
+//    @ManyToMany(fetch = FetchType.EAGER)
+//    @JoinTable(
+//            name = "role_permission",
+//            joinColumns = @JoinColumn(name = "role_id"),
+//            inverseJoinColumns = @JoinColumn(name = "permission_id")
+//    )
+//    private Set<PermissionEntity> permissionEntities = new HashSet<>();
+//
+//    public Collection<? extends GrantedAuthority> getAuthorities() {
+//        List<GrantedAuthority> authorities = new ArrayList<>();
+//        for (PermissionEntity permission : permissionEntities) {
+//            authorities.add(new GrantedAuthority() {
+//                @Override
+//                public String getAuthority() {
+//                    return permission.getPermissionName();
+//                }
+//            });
+//        }
+//        return authorities;
+//    }
 }

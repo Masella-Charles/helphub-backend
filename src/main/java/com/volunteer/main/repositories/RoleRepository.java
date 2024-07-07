@@ -12,6 +12,6 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends CrudRepository<RoleEntity, Long> {
     Optional<RoleEntity> findByRoleName(String roleName);
-    @Query("SELECT r FROM RoleEntity r LEFT JOIN FETCH r.permissionEntities")
+    @Query("SELECT r FROM RoleEntity r")
     List<RoleEntity> findAllWithPermissions();
 }

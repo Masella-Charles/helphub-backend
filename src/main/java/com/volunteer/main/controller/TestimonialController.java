@@ -54,7 +54,7 @@ public class TestimonialController {
         return switch (path) {
             case "/api/v1/testimonial/create" -> createTestimonial(testimonialDTO);
             case "/api/v1/testimonial/list" -> getAllTestimonials();
-            case "/api/v1/testimonial/get" -> getTestimonialByCriteria(id, status, userId);
+            case "/api/v1/testimonial/get" -> getTestimonialByCriteria(testimonialDTO);
             case "/api/v1/testimonial/update" -> updateTestimonial(testimonialDTO);
             case "/api/v1/testimonial/transition" -> transitionTestimonial(testimonialDTO);
             case "/api/v1/testimonial/delete" -> deleteTestimonial(testimonialDTO);
@@ -77,7 +77,10 @@ public class TestimonialController {
         return testimonialService.getTestimonialById(testimonialDTO);
     }
 
-    public ResponseEntity<?> getTestimonialByCriteria( Long id,Boolean status, Long userId) {
+    public ResponseEntity<?> getTestimonialByCriteria( TestimonialDTO testimonialDTO) {
+        Long id = testimonialDTO.getId();
+        Boolean status = testimonialDTO.getStatus();
+        Long userId = testimonialDTO.getUserId();
         return testimonialService.getTestimonialByCriteria(id, status, userId);
     }
 

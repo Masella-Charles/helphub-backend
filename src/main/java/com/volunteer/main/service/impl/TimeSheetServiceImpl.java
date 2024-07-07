@@ -7,6 +7,7 @@ import com.volunteer.main.model.request.TimeSheetDTO;
 import com.volunteer.main.repositories.OpportunityUserRepository;
 import com.volunteer.main.repositories.TimeSheetRepository;
 import com.volunteer.main.service.TimeSheetService;
+import com.volunteer.main.utils.Utils;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,12 @@ import java.util.List;
 public class TimeSheetServiceImpl implements TimeSheetService {
     private final TimeSheetRepository timeSheetRepository;
     private final OpportunityUserRepository opportunityUserRepository;
+    private final Utils utils;
 
-    public TimeSheetServiceImpl(TimeSheetRepository timeSheetRepository, OpportunityUserRepository opportunityUserRepository) {
+    public TimeSheetServiceImpl(TimeSheetRepository timeSheetRepository, OpportunityUserRepository opportunityUserRepository, Utils utils) {
         this.timeSheetRepository = timeSheetRepository;
         this.opportunityUserRepository = opportunityUserRepository;
+        this.utils = utils;
     }
     @Override
     public ResponseEntity<?> createTimeSheet(TimeSheetDTO requestDTO) {
@@ -34,9 +37,11 @@ public class TimeSheetServiceImpl implements TimeSheetService {
             TimeSheetEntity timesheet = new TimeSheetEntity();
             timesheet.setUser(opportunityUser.getUser());
             timesheet.setOpportunity(opportunityUser.getOpportunity());
-            timesheet.setStatus(true); // Assuming initial status is true upon creation
+            timesheet.setStatus(false); // Assuming initial status is true upon creation
             timesheet.setStartTime(requestDTO.getStartTime());
             timesheet.setEndTime(requestDTO.getEndTime());
+            timesheet.setCreatedAt(utils.date());
+            timesheet.setUpdatedAt(null);
 
             TimeSheetEntity savedTimesheet = timeSheetRepository.save(timesheet);
             return ResponseEntity.ok(savedTimesheet);
@@ -55,6 +60,7 @@ public class TimeSheetServiceImpl implements TimeSheetService {
 
             timesheet.setStartTime(requestDTO.getStartTime());
             timesheet.setEndTime(requestDTO.getEndTime());
+            timesheet.setUpdatedAt(utils.date());
 
             TimeSheetEntity updatedTimesheet = timeSheetRepository.save(timesheet);
             return ResponseEntity.ok(updatedTimesheet);
@@ -134,6 +140,11 @@ public class TimeSheetServiceImpl implements TimeSheetService {
     public ResponseEntity<?> getTimeSheetByCriteria(Long timesheetId, Long userId) {
         try {
             if (timesheetId != null && userId != null) {
+                // Get timesheet by ID and user ID
+                TimeSheetEntity timesheet = timeSheetRepository.findByIdAndUserId(timesheetId, userId)
+                        .orElseThrow(() -> new EntityNotFoundException("Timesheet not found with id: " + timesheetId + " and userId: " + userId));
+                return ResponseEntity.ok(timesheet);
+            } else if (timesheetId != null) {
                 // Get timesheet by ID
                 TimeSheetEntity timesheet = timeSheetRepository.findById(timesheetId)
                         .orElseThrow(() -> new EntityNotFoundException("Timesheet not found with id: " + timesheetId));

@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/timesheet")
+@RequestMapping("/api/v1/timesheet")
 public class TimeSheetController {
     private final TimeSheetService timeSheetService;
 
@@ -49,10 +49,10 @@ public class TimeSheetController {
         return switch (path) {
             case "/api/v1/timesheet/create" -> createTimeSheet(timeSheetDTO);
             case "/api/v1/timesheet/list" -> getAllTimeSheets();
-            case "/api/v1/timesheet/get" -> getTimeSheetByCriteria(timeSheetId,userId);
-            case "/api/v1/timesheet/update" -> updateTimeSheet(timeSheetId,timeSheetDTO);
-            case "/api/v1/timesheet/transition" -> transitionTimeSheetStatus(timeSheetId,status);
-            case "/api/v1/timesheet/delete" -> deleteTimeSheet(timeSheetId);
+            case "/api/v1/timesheet/get" -> getTimeSheetByCriteria(timeSheetDTO);
+            case "/api/v1/timesheet/update" -> updateTimeSheet(timeSheetDTO);
+            case "/api/v1/timesheet/transition" -> transitionTimeSheetStatus(timeSheetDTO);
+            case "/api/v1/timesheet/delete" -> deleteTimeSheet(timeSheetDTO);
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
         };
 
@@ -62,12 +62,14 @@ public class TimeSheetController {
         return timeSheetService.createTimeSheet(requestDTO);
     }
 
-    public ResponseEntity<?> updateTimeSheet(Long timesheetId,TimeSheetDTO requestDTO) {
+    public ResponseEntity<?> updateTimeSheet(TimeSheetDTO requestDTO) {
+        Long timesheetId = requestDTO.getId();
         return timeSheetService.updateTimeSheet(timesheetId, requestDTO);
     }
 
 
-    public ResponseEntity<?> deleteTimeSheet(Long timesheetId) {
+    public ResponseEntity<?> deleteTimeSheet(TimeSheetDTO requestDTO) {
+        Long timesheetId = requestDTO.getId();
         return timeSheetService.deleteTimeSheet(timesheetId);
     }
 
@@ -84,12 +86,16 @@ public class TimeSheetController {
         return timeSheetService.getAllTimeSheets();
     }
 
-    public ResponseEntity<?> getTimeSheetByCriteria(Long timeSheetId,Long userId) {
+    public ResponseEntity<?> getTimeSheetByCriteria(TimeSheetDTO requestDTO) {
+        Long timeSheetId = requestDTO.getId();
+        Long userId = requestDTO.getUserId();
         return timeSheetService.getTimeSheetByCriteria(timeSheetId, userId);
     }
 
 
-    public ResponseEntity<?> transitionTimeSheetStatus(Long timesheetId, Boolean status) {
+    public ResponseEntity<?> transitionTimeSheetStatus(TimeSheetDTO requestDTO) {
+        Long timesheetId = requestDTO.getId();
+        Boolean status = requestDTO.getStatus();
         return timeSheetService.transitionTimeSheetStatus(timesheetId, status);
     }
 }

@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -327,16 +328,13 @@ public class OpportunityServiceImpl implements OpportunityService {
                     .orElseThrow(() -> new EntityNotFoundException("Opportunity not found with id: " + opportunityId));
 
             // Check if the opportunity already has the required number of volunteers
-            long currentVolunteerCount = opportunityRepository.countByRequiredVolunteers(opportunity);
+            long currentVolunteerCount = opportunityUserRepository.countByOpportunityId(opportunityId);
             if (currentVolunteerCount >= opportunity.getRequiredVolunteers()) {
-                throw new CustomAuthenticationException("The opportunity has already reached the required number of volunteers.",null);
+                throw new CustomAuthenticationException("The opportunity has already reached the required number of volunteers.", null);
             }
 
             // Check if the user has at least one skill
-            UserEntity userEntity = userRepository.findById(Math.toIntExact(userId))
-                    .orElseThrow(() -> new EntityNotFoundException("Volunteer not found for user with id: " + userId));
-
-            if (userEntity.getVolunteer().getSkills() == null || userEntity.getVolunteer().getSkills().isEmpty()) {
+            if (user.getVolunteer().getSkills() == null || user.getVolunteer().getSkills().isEmpty()) {
                 throw new CustomAuthenticationException("User must have at least one skill to volunteer.", null);
             }
 
@@ -344,6 +342,8 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunityUserEntity.setUser(user);
             opportunityUserEntity.setOpportunity(opportunity);
             opportunityUserEntity.setStatus(false);
+            opportunityUserEntity.setCreatedAt(utils.date());
+            opportunityUserEntity.setUpdatedAt(null);
             opportunityUserEntity = opportunityUserRepository.save(opportunityUserEntity);
 
             OpportunityUserDTO opportunityUserDTO = new OpportunityUserDTO();
@@ -354,14 +354,20 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunityUserDTO.setUserId(user.getId());
             opportunityUserDTO.setUserName(user.getFullName());
             opportunityUserDTO.setUserEmail(user.getEmail());
-            opportunityUserDTO.setUserSkills((List<String>) user.getVolunteer().getSkills());
+
+            // Convert Set to List
+            List<String> userSkills = new ArrayList<>(user.getVolunteer().getSkills());
+            opportunityUserDTO.setUserSkills(userSkills);
+
             opportunityUserDTO.setOpportunityId(opportunity.getId());
             opportunityUserDTO.setOpportunityName(opportunity.getName());
             opportunityUserDTO.setOpportunityDescription(opportunity.getDescription());
+
+            opportunityUserDTO.setId(opportunityUserEntity.getId());
             opportunityUserDTO.setStatus(opportunityUserEntity.getStatus());
 
             return opportunityUserDTO;
-        }catch (DataAccessException e) {
+        } catch (DataAccessException e) {
             logger.error("Database error while volunteering: {}", e.getMessage());
             throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
         } catch (Exception e) {
@@ -371,23 +377,26 @@ public class OpportunityServiceImpl implements OpportunityService {
     }
 
     @Override
-    public OpportunityUserDTO volunteerTransition(Long userId, Long opportunityId, Boolean status) {
+    public OpportunityUserDTO volunteerTransition(OpportunityUserDTO opportunityUserDTO1) {
         try {
-            UserEntity user = userRepository.findById(Math.toIntExact(userId))
-                    .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
-            OpportunityEntity opportunity = opportunityRepository.findById(opportunityId)
-                    .orElseThrow(() -> new EntityNotFoundException("Opportunity not found with id: " + opportunityId));
+            OpportunityUserEntity opportunityUserEntity = opportunityUserRepository.findById(opportunityUserDTO1.getId())
+                    .orElseThrow(() -> new EntityNotFoundException("OpportunityUserEntity not found with id: " + opportunityUserDTO1.getId()));
+
+            UserEntity user = userRepository.findById(Math.toIntExact(opportunityUserDTO1.getUserId()))
+                    .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + opportunityUserDTO1.getUserId()));
+            OpportunityEntity opportunity = opportunityRepository.findById(opportunityUserDTO1.getOpportunityId())
+                    .orElseThrow(() -> new EntityNotFoundException("Opportunity not found with id: " + opportunityUserDTO1.getOpportunityId()));
 
             // Check if the opportunity already has the required number of volunteers
-            long currentVolunteerCount = opportunityRepository.countByRequiredVolunteers(opportunity);
+            long currentVolunteerCount = opportunityUserRepository.countByOpportunityId(opportunityUserDTO1.getOpportunityId());
             if (currentVolunteerCount >= opportunity.getRequiredVolunteers()) {
                 throw new CustomAuthenticationException("The opportunity has already reached the required number of volunteers.", null);
             }
 
-            OpportunityUserEntity opportunityUserEntity = new OpportunityUserEntity();
             opportunityUserEntity.setUser(user);
             opportunityUserEntity.setOpportunity(opportunity);
-            opportunityUserEntity.setStatus(status);
+            opportunityUserEntity.setStatus(opportunityUserDTO1.getStatus());
+            opportunityUserEntity.setUpdatedAt(utils.date());
             opportunityUserEntity = opportunityUserRepository.save(opportunityUserEntity);
 
             OpportunityUserDTO opportunityUserDTO = new OpportunityUserDTO();
@@ -395,17 +404,22 @@ public class OpportunityServiceImpl implements OpportunityService {
             responseStatus.setResponseCode("200");
             responseStatus.setResponseDesc("Volunteer transitioned successfully");
             opportunityUserDTO.setResponseStatus(responseStatus);
+            opportunityUserDTO.setId(opportunityUserEntity.getId());
+            opportunityUserDTO.setStatus(opportunityUserEntity.getStatus());
             opportunityUserDTO.setUserId(user.getId());
             opportunityUserDTO.setUserName(user.getFullName());
             opportunityUserDTO.setUserEmail(user.getEmail());
-            opportunityUserDTO.setUserSkills((List<String>) user.getVolunteer().getSkills());
+
+            // Convert Set to List
+            List<String> userSkills = new ArrayList<>(user.getVolunteer().getSkills());
+            opportunityUserDTO.setUserSkills(userSkills);
+
             opportunityUserDTO.setOpportunityId(opportunity.getId());
             opportunityUserDTO.setOpportunityName(opportunity.getName());
             opportunityUserDTO.setOpportunityDescription(opportunity.getDescription());
-            opportunityUserDTO.setStatus(opportunityUserEntity.getStatus());
 
             return opportunityUserDTO;
-        }catch (DataAccessException e) {
+        } catch (DataAccessException e) {
             logger.error("Database error while transitioning: {}", e.getMessage());
             throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
         } catch (Exception e) {
@@ -414,25 +428,44 @@ public class OpportunityServiceImpl implements OpportunityService {
         }
     }
 
-    public Object  getOpportunityUserByIdOrStatusOrUserIdOrOpportunityId(Long id, Boolean status, Long userId, Long opportunityId) {
+    @Override
+    public Object getOpportunityUserByIdOrStatusOrUserIdOrOpportunityId(Long id, Boolean status, Long userId, Long opportunityId) {
         try {
+            List<OpportunityUserEntity> opportunityUserEntities = new ArrayList<>();
+
             if (id != null) {
                 Optional<OpportunityUserEntity> opportunityUserEntityOptional = opportunityUserRepository.findById(Math.toIntExact(id));
                 OpportunityUserEntity opportunityUserEntity = opportunityUserEntityOptional
                         .orElseThrow(() -> new EntityNotFoundException("OpportunityUserEntity not found with id: " + id));
-                return mapToDTO(opportunityUserEntity);
-            } else if (status != null) {
-                List<OpportunityUserEntity> opportunityUserEntities = opportunityUserRepository.findByStatus(status);
-                return opportunityUserEntities.stream().map(this::mapToDTO).collect(Collectors.toList());
-            } else if (userId != null) {
-                List<OpportunityUserEntity> opportunityUserEntities = opportunityUserRepository.findByUserId(userId);
-                return opportunityUserEntities.stream().map(this::mapToDTO).collect(Collectors.toList());
-            } else if (opportunityId != null) {
-                List<OpportunityUserEntity> opportunityUserEntities = opportunityUserRepository.findByOpportunityId(opportunityId);
-                return opportunityUserEntities.stream().map(this::mapToDTO).collect(Collectors.toList());
+                opportunityUserEntities.add(opportunityUserEntity);
             } else {
-                throw new IllegalArgumentException("Either id, status, userId, or opportunityId must be provided");
+                opportunityUserEntities = opportunityUserRepository.findAll(); // Start with all entities
+
+                if (status != null) {
+                    opportunityUserEntities = opportunityUserEntities.stream()
+                            .filter(entity -> entity.getStatus().equals(status))
+                            .collect(Collectors.toList());
+                }
+
+                if (userId != null) {
+                    opportunityUserEntities = opportunityUserEntities.stream()
+                            .filter(entity -> entity.getUser().getId().equals(userId))
+                            .collect(Collectors.toList());
+                }
+
+                if (opportunityId != null) {
+                    opportunityUserEntities = opportunityUserEntities.stream()
+                            .filter(entity -> entity.getOpportunity().getId().equals(opportunityId))
+                            .collect(Collectors.toList());
+                }
             }
+
+            if (opportunityUserEntities.isEmpty()) {
+                throw new EntityNotFoundException("No OpportunityUserEntities found with the given criteria.");
+            }
+
+            return opportunityUserEntities.stream().map(this::mapToDTO).collect(Collectors.toList());
+
         } catch (DataAccessException e) {
             logger.error("Database error while fetching opportunity user: {}", e.getMessage());
             throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
@@ -441,7 +474,6 @@ public class OpportunityServiceImpl implements OpportunityService {
             throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
         }
     }
-
     @Override
     public List<OpportunityUserDTO> getAllOpportunityUsers() {
         try {
@@ -458,10 +490,15 @@ public class OpportunityServiceImpl implements OpportunityService {
 
     private OpportunityUserDTO mapToDTO(OpportunityUserEntity opportunityUserEntity) {
         OpportunityUserDTO opportunityUserDTO = new OpportunityUserDTO();
+        opportunityUserDTO.setId(opportunityUserEntity.getId());
         opportunityUserDTO.setUserId(opportunityUserEntity.getUser().getId());
         opportunityUserDTO.setUserName(opportunityUserEntity.getUser().getFullName());
         opportunityUserDTO.setUserEmail(opportunityUserEntity.getUser().getEmail());
-        opportunityUserDTO.setUserSkills((List<String>) opportunityUserEntity.getUser().getVolunteer().getSkills());
+
+        // Convert Set to List
+        List<String> userSkills = new ArrayList<>(opportunityUserEntity.getUser().getVolunteer().getSkills());
+        opportunityUserDTO.setUserSkills(userSkills);
+
         opportunityUserDTO.setOpportunityId(opportunityUserEntity.getOpportunity().getId());
         opportunityUserDTO.setOpportunityName(opportunityUserEntity.getOpportunity().getName());
         opportunityUserDTO.setOpportunityDescription(opportunityUserEntity.getOpportunity().getDescription());
@@ -474,5 +511,22 @@ public class OpportunityServiceImpl implements OpportunityService {
         opportunityUserDTO.setResponseStatus(responseStatus);
 
         return opportunityUserDTO;
+    }
+
+    @Override
+    public void deleteOpportunityUser(Long id) {
+        try {
+            OpportunityUserEntity opportunityUserEntity = opportunityUserRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("OpportunityUserEntity not found with id: " + id));
+            opportunityUserRepository.delete(opportunityUserEntity);
+            logger.info("Volunteer assignment with id {} has been deleted successfully.", id);
+
+        } catch (DataAccessException e) {
+            logger.error("Database error while deleting volunteer assignment: {}", e.getMessage());
+            throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected error while deleting volunteer assignment: {}", e.getMessage());
+            throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
+        }
     }
 }

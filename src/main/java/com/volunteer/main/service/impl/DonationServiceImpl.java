@@ -328,32 +328,35 @@ public class DonationServiceImpl implements DonationService {
 
     private boolean canDistributeFurther(DonationEntity donationEntity, DonationDistributionDTO donationDistributionDTO) {
         // Calculate remaining quantity or amount
-        Integer remainingQuantity = donationEntity.getQuantity() - getAlreadyDistributedQuantity(donationEntity);
-        Double remainingAmount = donationEntity.getAmount() - getAlreadyDistributedAmount(donationEntity);
+        Integer remainingQuantity = donationEntity.getQuantity() != null ? donationEntity.getQuantity() - getAlreadyDistributedQuantity(donationEntity) : 0;
+        Double remainingAmount = donationEntity.getAmount() != null ? donationEntity.getAmount() - getAlreadyDistributedAmount(donationEntity) : 0.0;
 
-        // Check against intended distribution quantity or amount
+        // Check if the donation type is money and validate the remaining amount
         if ("money".equals(donationEntity.getType())) {
-            return remainingAmount >= donationDistributionDTO.getAmountDistributed();
-        } else if ("commodity".equals(donationEntity.getType())) {
-            return remainingQuantity >= donationDistributionDTO.getQuantityDistributed();
-        } else {
-            // Handle other types or throw an exception if type is unknown
-            throw new IllegalArgumentException("Unknown donation type: " + donationEntity.getType());
+            return remainingAmount >= (donationDistributionDTO.getAmountDistributed() != null ? donationDistributionDTO.getAmountDistributed() : 0.0);
+        }
+        // Check if the donation type is commodity and validate the remaining quantity
+        else if ("commodity".equals(donationEntity.getType())) {
+            return remainingQuantity >= (donationDistributionDTO.getQuantityDistributed() != null ? donationDistributionDTO.getQuantityDistributed() : 0);
+        }
+        // Check if both amount and quantity are being distributed and validate both
+        else {
+            boolean canDistributeAmount = donationDistributionDTO.getAmountDistributed() == null || remainingAmount >= donationDistributionDTO.getAmountDistributed();
+            boolean canDistributeQuantity = donationDistributionDTO.getQuantityDistributed() == null || remainingQuantity >= donationDistributionDTO.getQuantityDistributed();
+            return canDistributeAmount && canDistributeQuantity;
         }
     }
 
     private Integer getAlreadyDistributedQuantity(DonationEntity donationEntity) {
         // Example: Fetch already distributed quantity from DonationDistributionEntity
         List<DonationDistributionEntity> distributions = donationDistributionRepository.findByDonationId(donationEntity.getId());
-        int alreadyDistributedQuantity = distributions.stream().mapToInt(DonationDistributionEntity::getQuantityDistributed).sum();
-        return alreadyDistributedQuantity;
+        return distributions.stream().mapToInt(DonationDistributionEntity::getQuantityDistributed).sum();
     }
 
     private Double getAlreadyDistributedAmount(DonationEntity donationEntity) {
         // Example: Fetch already distributed amount from DonationDistributionEntity
         List<DonationDistributionEntity> distributions = donationDistributionRepository.findByDonationId(donationEntity.getId());
-        double alreadyDistributedAmount = distributions.stream().mapToDouble(DonationDistributionEntity::getAmountDistributed).sum();
-        return alreadyDistributedAmount;
+        return distributions.stream().mapToDouble(DonationDistributionEntity::getAmountDistributed).sum();
     }
 
     @Override
@@ -364,6 +367,23 @@ public class DonationServiceImpl implements DonationService {
                     .orElseThrow(() -> new EntityNotFoundException("Donation not found with id: " + donationDistributionDTO.getDonationId()));
 
             logger.info("Found donation entity: {}", donationEntity);
+
+            List<DonationDistributionEntity> existingDistributions = donationDistributionRepository.findByDonationId(donationDistributionDTO.getDonationId());
+            if (!existingDistributions.isEmpty()) {
+                String errorMessage = "DonationId has been used, update instead";
+                logger.error(errorMessage);
+                ResponseStatus responseStatus = new ResponseStatus();
+                responseStatus.setResponseCode("400");
+                responseStatus.setResponseDesc(errorMessage);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseStatus);
+            }
+
+            // Check if further distribution is possible
+            if (!canDistributeFurther(donationEntity, donationDistributionDTO)) {
+                String errorMessage = "Insufficient quantity or amount available for distribution";
+                logger.error(errorMessage);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+            }
 
             DonationDistributionEntity donationDistributionEntity = new DonationDistributionEntity();
             donationDistributionEntity.setRecipientName(donationDistributionDTO.getRecipientName());
@@ -387,20 +407,52 @@ public class DonationServiceImpl implements DonationService {
         }
     }
 
+
     @Override
     public ResponseEntity<?> updateDonationDistribution(Long id, DonationDistributionDTO donationDistributionDTO) {
+        logger.info("Updating donation distribution for ID: {} and DTO: {}", id, donationDistributionDTO);
         try {
             DonationDistributionEntity existingEntity = donationDistributionRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Donation distribution not found with id: " + id));
 
-            updateDonationDistributionEntityFromDTO(existingEntity, donationDistributionDTO);
+            DonationEntity donationEntity = existingEntity.getDonation();
+
+            logger.info("Found donation entity: {}", donationEntity);
+
+            // Calculate the new intended total distribution
+            double newTotalAmountDistributed = (existingEntity.getAmountDistributed() != null ? existingEntity.getAmountDistributed() : 0.0)
+                    - (donationDistributionDTO.getAmountDistributed() != null ? donationDistributionDTO.getAmountDistributed() : 0.0);
+
+            int newTotalQuantityDistributed = (existingEntity.getQuantityDistributed() != null ? existingEntity.getQuantityDistributed() : 0)
+                    - (donationDistributionDTO.getQuantityDistributed() != null ? donationDistributionDTO.getQuantityDistributed() : 0);
+
+            DonationDistributionDTO newDto = new DonationDistributionDTO();
+            newDto.setDonationId(donationEntity.getId());
+            newDto.setAmountDistributed(newTotalAmountDistributed);
+            newDto.setQuantityDistributed(newTotalQuantityDistributed);
+
+            // Check if further distribution is possible
+            if (!canDistributeFurther(donationEntity, newDto)) {
+                String errorMessage = "Insufficient quantity or amount available for distribution";
+                logger.error(errorMessage);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+            }
+
+            existingEntity.setRecipientName(donationDistributionDTO.getRecipientName());
+            existingEntity.setAmountDistributed(donationDistributionDTO.getAmountDistributed());
+            existingEntity.setQuantityDistributed(donationDistributionDTO.getQuantityDistributed());
 
             DonationDistributionEntity updatedEntity = donationDistributionRepository.save(existingEntity);
+
+            logger.info("Updated donation distribution entity: {}", updatedEntity);
+
             DonationDistributionDTO updatedDTO = mapDonationDistributionToDTO(updatedEntity);
             return ResponseEntity.ok().body(updatedDTO);
         } catch (EntityNotFoundException e) {
+            logger.error("Error updating donation distribution: {}", e.getMessage());
             throw e;
         } catch (Exception e) {
+            logger.error("Unexpected error updating donation distribution: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Failed to update donation distribution: " + e.getMessage());
         }
