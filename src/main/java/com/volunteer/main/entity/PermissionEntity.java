@@ -22,6 +22,6 @@ public class PermissionEntity {
     @Column(name = "PERMISSION_DESCRIPTION", nullable = false)
     private String permissionDescription;
 
-//    @ManyToMany(mappedBy = "permissionEntities")
-//    private Set<RoleEntity> roles = new HashSet<>();
+    @ManyToMany(mappedBy = "permissionEntities")
+    private Set<RoleEntity> roles = new HashSet<>();
 }
