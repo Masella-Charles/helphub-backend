@@ -16,6 +16,7 @@ import java.util.List;
 
 @RequestMapping("api/v1/permission")
 @RestController
+@CrossOrigin(origins = "*")
 public class PermissionController {
     private static final Logger logger = LoggerFactory.getLogger(PermissionController.class);
     private final PermissionService permissionservice;

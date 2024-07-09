@@ -17,6 +17,7 @@ import java.util.List;
 
 @RequestMapping("api/v1/role")
 @RestController
+@CrossOrigin(origins = "*")
 public class RoleController {
     private static final Logger logger = LoggerFactory.getLogger(RoleController.class);
     private final RoleService roleService;

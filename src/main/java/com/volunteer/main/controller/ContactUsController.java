@@ -20,6 +20,7 @@ import java.util.List;
 
 @RequestMapping("api/v1/contactus")
 @RestController
+@CrossOrigin(origins = "*")
 public class ContactUsController {
     private static final Logger logger = LoggerFactory.getLogger(DisasterController.class);
 

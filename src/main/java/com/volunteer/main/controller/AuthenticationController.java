@@ -7,13 +7,11 @@ import com.volunteer.main.model.response.LoginResponseDTO;
 import com.volunteer.main.service.AuthenticationService;
 import com.volunteer.main.utils.JwtService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/auth")
 @RestController
+@CrossOrigin(origins = "*")
 public class AuthenticationController {
     private final JwtService jwtService;
 

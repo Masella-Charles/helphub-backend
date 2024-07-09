@@ -16,6 +16,7 @@ import java.util.List;
 
 @RequestMapping("api/v1/opportunityUser")
 @RestController
+@CrossOrigin(origins = "*")
 public class OpportunityUserController {
     private static final Logger logger = LoggerFactory.getLogger(OpportunityUserController.class);
 

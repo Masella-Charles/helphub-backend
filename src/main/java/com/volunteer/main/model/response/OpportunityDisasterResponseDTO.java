@@ -1,8 +1,10 @@
 package com.volunteer.main.model.response;
 
+import com.volunteer.main.model.request.OpportunityImageDTO;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class OpportunityDisasterResponseDTO {
@@ -14,7 +16,7 @@ public class OpportunityDisasterResponseDTO {
     private Integer requiredVolunteers;
     private Double hours;
     private Boolean status;
-    private byte[] opportunityImage;
+    private List<OpportunityImageDTO> opportunityImages;
     private DisasterEntity disasterEntity; // Reference to DisasterEntity
 
     @Data

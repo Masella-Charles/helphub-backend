@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 @RequestMapping("api/v1/role-permission")
 @RestController
+@CrossOrigin(origins = "*")
 public class RolePermissionController {
     private static final Logger logger = LoggerFactory.getLogger(RolePermissionController.class);
     private final RolePermissionService rolePermissionService;

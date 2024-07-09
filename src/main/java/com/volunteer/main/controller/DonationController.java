@@ -17,6 +17,7 @@ import java.util.List;
 
 @RequestMapping("api/v1/donation")
 @RestController
+@CrossOrigin(origins = "*")
 public class DonationController {
     private static final Logger logger = LoggerFactory.getLogger(DonationController.class);
 

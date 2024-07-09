@@ -5,14 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.volunteer.main.entity.*;
 import com.volunteer.main.exceptions.CustomAuthenticationException;
-import com.volunteer.main.model.request.DonationDTO;
 import com.volunteer.main.model.request.OpportunityDTO;
+import com.volunteer.main.model.request.OpportunityImageDTO;
 import com.volunteer.main.model.request.OpportunityUserDTO;
 import com.volunteer.main.model.response.*;
-import com.volunteer.main.repositories.DisasterRepository;
-import com.volunteer.main.repositories.OpportunityRepository;
-import com.volunteer.main.repositories.OpportunityUserRepository;
-import com.volunteer.main.repositories.UserRepository;
+import com.volunteer.main.repositories.*;
+import com.volunteer.main.service.OpportunityImageService;
 import com.volunteer.main.service.OpportunityService;
 import com.volunteer.main.utils.Utils;
 import jakarta.persistence.EntityNotFoundException;
@@ -24,28 +22,30 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class OpportunityServiceImpl implements OpportunityService {
-    private static final Logger logger = LoggerFactory.getLogger(DonationServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(OpportunityServiceImpl.class);
     private final OpportunityRepository opportunityRepository;
     private final UserRepository userRepository;
     private final DisasterRepository disasterRepository;
     private final Utils utils;
     private final OpportunityUserRepository opportunityUserRepository;
+    private final OpportunityImageService opportunityImageService;
+    private final OpportunityImageRepository opportunityImageRepository;
 
-    public OpportunityServiceImpl(OpportunityRepository opportunityRepository, UserRepository userRepository, DisasterRepository disasterRepository, Utils utils, OpportunityUserRepository opportunityUserRepository) {
+    public OpportunityServiceImpl(OpportunityRepository opportunityRepository, UserRepository userRepository, DisasterRepository disasterRepository, Utils utils, OpportunityUserRepository opportunityUserRepository, OpportunityImageService opportunityImageService, OpportunityImageRepository opportunityImageRepository) {
         this.opportunityRepository = opportunityRepository;
         this.userRepository = userRepository;
         this.disasterRepository = disasterRepository;
         this.utils = utils;
         this.opportunityUserRepository = opportunityUserRepository;
+        this.opportunityImageService = opportunityImageService;
+        this.opportunityImageRepository = opportunityImageRepository;
     }
 
     @Override
@@ -59,11 +59,6 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunityEntity.setRequiredVolunteers(opportunityDTO.getRequiredVolunteers());
             opportunityEntity.setStatus(false);
 
-            // Convert MultipartFile to byte[] and set it
-            if (opportunityImage != null && !opportunityImage.isEmpty()) {
-                opportunityEntity.setOpportunityImage(opportunityImage.getBytes());
-            }
-
             // Handle optional disasterId
             if (opportunityDTO.getDisasterId() != null) {
                 DisasterEntity disaster = disasterRepository.findById(opportunityDTO.getDisasterId())
@@ -71,10 +66,33 @@ public class OpportunityServiceImpl implements OpportunityService {
                 opportunityEntity.setDisasterEntity(disaster);
             }
 
+            List<OpportunityImageEntity> opportunityImages = new ArrayList<>();
+
+            // Handle image creation
+            for (OpportunityImageDTO imageDTO : opportunityDTO.getOpportunityImages()) {
+                if (imageDTO.getImageData() != null && !imageDTO.getImageData().isEmpty()) {
+                    String base64ImageData = imageDTO.getImageData();
+                    // Remove the prefix if it exists
+                    if (base64ImageData.contains(",")) {
+                        base64ImageData = base64ImageData.split(",")[1];
+                    }
+                    byte[] imageData = Base64.getDecoder().decode(base64ImageData);
+
+                    OpportunityImageEntity opportunityImageEntity = new OpportunityImageEntity();
+                    opportunityImageEntity.setOpportunityEntity(opportunityEntity);
+                    opportunityImageEntity.setImageData(imageData);
+                    opportunityImageEntity.setFileName(imageDTO.getFileName());
+
+                    opportunityImages.add(opportunityImageEntity);
+                }
+            }
+
+            opportunityEntity.setOpportunityImages(opportunityImages);
+
             opportunityEntity = opportunityRepository.save(opportunityEntity);
 
             // Create response DTO
-            OpportunityDTO opportunitySaved = new OpportunityDTO();
+            OpportunityResponseDTO.OpportunityResponse opportunitySaved = new OpportunityResponseDTO.OpportunityResponse();
             opportunitySaved.setId(opportunityEntity.getId());
             opportunitySaved.setName(opportunityEntity.getName());
             opportunitySaved.setDescription(opportunityEntity.getDescription());
@@ -82,9 +100,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunitySaved.setHours(opportunityEntity.getHours());
             opportunitySaved.setRequiredVolunteers(opportunityEntity.getRequiredVolunteers());
             opportunitySaved.setStatus(opportunityEntity.getStatus());
-            opportunitySaved.setOpportunityImage(opportunityEntity.getOpportunityImage());
 
-            // Only set disasterId if the disaster is not null
             if (opportunityEntity.getDisasterEntity() != null) {
                 opportunitySaved.setDisasterId(opportunityEntity.getDisasterEntity().getId());
             }
@@ -94,7 +110,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             responseStatus.setResponseDesc("Opportunity created successfully");
 
             OpportunityResponseDTO opportunityResponseDTO = new OpportunityResponseDTO();
-            opportunityResponseDTO.setOpportunityDTO(opportunitySaved);
+            opportunityResponseDTO.setOpportunityResponse(opportunitySaved);
             opportunityResponseDTO.setResponseStatus(responseStatus);
 
             return ResponseEntity.ok().body(opportunityResponseDTO);
@@ -119,10 +135,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunityEntity.setHours(opportunityDTO.getHours());
             opportunityEntity.setRequiredVolunteers(opportunityDTO.getRequiredVolunteers());
 
-            // Convert MultipartFile to byte[] and set it
-            if (opportunityImage != null && !opportunityImage.isEmpty()) {
-                opportunityEntity.setOpportunityImage(opportunityImage.getBytes());
-            }
+
 
             if (opportunityDTO.getDisasterId() != null) {
                 DisasterEntity disaster = disasterRepository.findById(opportunityDTO.getDisasterId())
@@ -130,9 +143,32 @@ public class OpportunityServiceImpl implements OpportunityService {
                 opportunityEntity.setDisasterEntity(disaster);
             }
 
+            List<OpportunityImageEntity> opportunityImages = new ArrayList<>();
+
+            // Handle image creation
+            for (OpportunityImageDTO imageDTO : opportunityDTO.getOpportunityImages()) {
+                if (imageDTO.getImageData() != null && !imageDTO.getImageData().isEmpty()) {
+                    String base64ImageData = imageDTO.getImageData();
+                    // Remove the prefix if it exists
+                    if (base64ImageData.contains(",")) {
+                        base64ImageData = base64ImageData.split(",")[1];
+                    }
+                    byte[] imageData = Base64.getDecoder().decode(base64ImageData);
+
+                    OpportunityImageEntity opportunityImageEntity = new OpportunityImageEntity();
+                    opportunityImageEntity.setOpportunityEntity(opportunityEntity);
+                    opportunityImageEntity.setImageData(imageData);
+                    opportunityImageEntity.setFileName(imageDTO.getFileName());
+
+                    opportunityImages.add(opportunityImageEntity);
+                }
+            }
+
+            opportunityEntity.setOpportunityImages(opportunityImages);
+
             opportunityEntity = opportunityRepository.save(opportunityEntity);
 
-            OpportunityDTO opportunitySaved = new OpportunityDTO();
+            OpportunityResponseDTO.OpportunityResponse opportunitySaved = new OpportunityResponseDTO.OpportunityResponse();
             opportunitySaved.setId(opportunityEntity.getId());
             opportunitySaved.setName(opportunityEntity.getName());
             opportunitySaved.setDescription(opportunityEntity.getDescription());
@@ -140,7 +176,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunitySaved.setHours(opportunityEntity.getHours());
             opportunitySaved.setRequiredVolunteers(opportunityEntity.getRequiredVolunteers());
             opportunitySaved.setStatus(opportunityEntity.getStatus());
-            opportunitySaved.setOpportunityImage(opportunityEntity.getOpportunityImage());
+//            opportunitySaved.setOpportunityImages(opportunityImages);
 
             // Only set disasterId if the disaster is not null
             if (opportunityEntity.getDisasterEntity() != null) {
@@ -152,7 +188,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             responseStatus.setResponseDesc("Donation updated successfully");
 
             OpportunityResponseDTO opportunityResponseDTO = new OpportunityResponseDTO();
-            opportunityResponseDTO.setOpportunityDTO(opportunitySaved);
+            opportunityResponseDTO.setOpportunityResponse(opportunitySaved);
             opportunityResponseDTO.setResponseStatus(responseStatus);
 
             return ResponseEntity.ok().body(opportunityResponseDTO);
@@ -182,7 +218,7 @@ public class OpportunityServiceImpl implements OpportunityService {
 
             opportunityEntity = opportunityRepository.save(opportunityEntity);
 
-            OpportunityDTO opportunitySaved = new OpportunityDTO();
+            OpportunityResponseDTO.OpportunityResponse opportunitySaved = new OpportunityResponseDTO.OpportunityResponse();
             opportunitySaved.setId(opportunityEntity.getId());
             opportunitySaved.setName(opportunityEntity.getName());
             opportunitySaved.setDescription(opportunityEntity.getDescription());
@@ -190,7 +226,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             opportunitySaved.setHours(opportunityEntity.getHours());
             opportunitySaved.setRequiredVolunteers(opportunityEntity.getRequiredVolunteers());
             opportunitySaved.setStatus(opportunityEntity.getStatus());
-            opportunitySaved.setOpportunityImage(opportunityEntity.getOpportunityImage());
+//            opportunitySaved.setOpportunityImage(opportunityEntity.getOpportunityImage());
 
             // Only set disasterId if the disaster is not null
             if (opportunityEntity.getDisasterEntity() != null) {
@@ -202,7 +238,7 @@ public class OpportunityServiceImpl implements OpportunityService {
             responseStatus.setResponseDesc("Opportunity transitioned successfully");
 
             OpportunityResponseDTO opportunityResponseDTO = new OpportunityResponseDTO();
-            opportunityResponseDTO.setOpportunityDTO(opportunitySaved);
+            opportunityResponseDTO.setOpportunityResponse(opportunitySaved);
             opportunityResponseDTO.setResponseStatus(responseStatus);
 
             return ResponseEntity.ok().body(opportunityResponseDTO);
@@ -251,12 +287,34 @@ public class OpportunityServiceImpl implements OpportunityService {
         }
     }
 
+
     @Override
-    public List<OpportunityEntity> getAllOpportunities() {
+    public List<OpportunityResponseDTO> getAllOpportunities() {
         try {
             Iterable<OpportunityEntity> opportunityEntityIterable = opportunityRepository.findAll();
-            return StreamSupport.stream(opportunityEntityIterable.spliterator(), false)
+            List<OpportunityResponseDTO> responseList = StreamSupport.stream(opportunityEntityIterable.spliterator(), false)
+                    .map(this::mapToOpportunityListDTO)
                     .collect(Collectors.toList());
+
+            responseList.forEach(responseDTO -> {
+                OpportunityResponseDTO.OpportunityResponse opportunityResponse = responseDTO.getOpportunityResponse();
+                OpportunityEntity opportunityEntity = opportunityRepository.findById(opportunityResponse.getId()).orElse(null);
+                if (opportunityEntity != null) {
+                    List<OpportunityImageResponseDTO> imageInfoList = opportunityEntity.getOpportunityImages().stream()
+                            .map(image -> {
+                                OpportunityImageResponseDTO imageInfoDTO = new OpportunityImageResponseDTO();
+                                imageInfoDTO.setId(image.getId());
+                                imageInfoDTO.setFileName(image.getFileName());
+                                imageInfoDTO.setOpportunityId(image.getOpportunityEntity().getId());
+                                imageInfoDTO.setImageData(Base64.getEncoder().encodeToString(image.getImageData())); // Encode image data to Base64
+                                return imageInfoDTO;
+                            })
+                            .collect(Collectors.toList());
+                    opportunityResponse.setOpportunityImages(imageInfoList);
+                }
+            });
+
+            return responseList;
         } catch (DataAccessException e) {
             logger.error("Database error while listing all opportunities: {}", e.getMessage());
             throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
@@ -266,22 +324,68 @@ public class OpportunityServiceImpl implements OpportunityService {
         }
     }
 
+    private OpportunityResponseDTO mapToOpportunityListDTO(OpportunityEntity opportunityEntity) {
+        OpportunityResponseDTO dto = new OpportunityResponseDTO();
+        OpportunityResponseDTO.OpportunityResponse opportunityResponse = new OpportunityResponseDTO.OpportunityResponse();
+        opportunityResponse.setId(opportunityEntity.getId());
+        opportunityResponse.setName(opportunityEntity.getName());
+        opportunityResponse.setDescription(opportunityEntity.getDescription());
+        opportunityResponse.setDate(opportunityEntity.getDate());
+        opportunityResponse.setRequiredVolunteers(opportunityEntity.getRequiredVolunteers());
+        opportunityResponse.setHours(opportunityEntity.getHours());
+        opportunityResponse.setStatus(opportunityEntity.getStatus());
+
+        if (opportunityEntity.getDisasterEntity() != null) {
+            opportunityResponse.setDisasterId(opportunityEntity.getDisasterEntity().getId());
+        }
+
+        List<OpportunityImageResponseDTO> imageInfoList = opportunityEntity.getOpportunityImages().stream()
+                .map(image -> {
+                    OpportunityImageResponseDTO imageInfoDTO = new OpportunityImageResponseDTO();
+                    imageInfoDTO.setId(image.getId());
+                    imageInfoDTO.setFileName(image.getFileName());
+                    imageInfoDTO.setOpportunityId(image.getOpportunityEntity().getId());
+                    imageInfoDTO.setImageData(Base64.getEncoder().encodeToString(image.getImageData())); // Encode image data to Base64
+                    return imageInfoDTO;
+                })
+                .collect(Collectors.toList());
+        opportunityResponse.setOpportunityImages(imageInfoList);
+
+        dto.setOpportunityResponse(opportunityResponse);
+
+        return dto;
+    }
+
     @Override
-    public List<OpportunityDisasterResponseDTO> getOpportunitiesByIdStatusOrDisasterId(Long id, Boolean status, Long disasterId) {
+    public List<OpportunityResponseDTO> getOpportunitiesByCriteria(Long opportunityId, Boolean status) {
         try {
-            List<OpportunityEntity> opportunityEntities;
-            if (id != null) {
-                Optional<OpportunityEntity> opportunityEntityOptional = opportunityRepository.findById(id);
-                opportunityEntities = opportunityEntityOptional.map(Collections::singletonList).orElse(Collections.emptyList());
+            List<OpportunityEntity> opportunityEntities = new ArrayList<>();;
+
+            if (opportunityId != null && status != null) {
+                opportunityEntities = opportunityRepository.findByIdAndStatus(opportunityId, status);
+            } else if (opportunityId != null) {
+                Optional<OpportunityEntity> opportunityEntitiesOptional= opportunityRepository.findById(opportunityId);
+                logger.info("opportunityEntitiesOptional {}", opportunityEntitiesOptional);
+                if (opportunityEntitiesOptional.isPresent()) {
+                    OpportunityEntity opportunityEntity = opportunityEntitiesOptional.get();
+                    logger.info("opportunityEntity {}", opportunityEntity);
+                    opportunityEntities.add(opportunityEntity);
+                    logger.info("opportunityEntities {}", opportunityEntities);
+
+                }else{
+                    opportunityEntities = Collections.emptyList();
+                }
             } else if (status != null) {
                 opportunityEntities = opportunityRepository.findByStatus(status);
-            } else if (disasterId != null) {
-                opportunityEntities = opportunityRepository.findByDisasterEntityId(disasterId);
+                logger.info("opportunityEntities {}", opportunityEntities);
             } else {
-                throw new IllegalArgumentException("Either id, status, or disasterId must be provided");
+                // Case: no criteria provided, fetch all
+                opportunityEntities = opportunityRepository.findAll();
             }
 
-            return opportunityEntities.stream().map(this::mapToOpportunityDisasterResponseDTO).collect(Collectors.toList());
+            return opportunityEntities.stream()
+                    .map(this::mapToOpportunityListDTO)
+                    .collect(Collectors.toList());
         } catch (DataAccessException e) {
             logger.error("Database error while fetching opportunities: {}", e.getMessage());
             throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
@@ -289,6 +393,62 @@ public class OpportunityServiceImpl implements OpportunityService {
             logger.error("Unexpected error while fetching opportunities: {}", e.getMessage());
             throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<OpportunityResponseDTO> getOpportunitiesByStatus(Boolean status) {
+        try {
+            List<OpportunityEntity> opportunityEntities = opportunityRepository.findByStatus(status);
+
+            List<OpportunityResponseDTO> responseList = opportunityEntities.stream()
+                    .map(this::mapToOpportunityDTOForGetBy)
+                    .collect(Collectors.toList());
+
+            responseList.forEach(responseDTO -> {
+                Long opportunityId = responseDTO.getOpportunityResponse().getId();
+                Optional<OpportunityImageEntity> imageEntities = opportunityImageRepository.findByOpportunityEntity_Id(opportunityId);
+
+                List<OpportunityImageResponseDTO> imageInfoList = imageEntities.stream()
+                        .map(image -> {
+                            OpportunityImageResponseDTO imageInfoDTO = new OpportunityImageResponseDTO();
+                            imageInfoDTO.setId(image.getId());
+                            imageInfoDTO.setFileName(image.getFileName());
+                            imageInfoDTO.setOpportunityId(opportunityId);
+                            imageInfoDTO.setImageData(Base64.getEncoder().encodeToString(image.getImageData())); // Encode image data to Base64
+                            return imageInfoDTO;
+                        })
+                        .collect(Collectors.toList());
+
+                responseDTO.getOpportunityResponse().setOpportunityImages(imageInfoList);
+            });
+
+            return responseList;
+        } catch (DataAccessException e) {
+            logger.error("Database error while fetching opportunities: {}", e.getMessage());
+            throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
+        } catch (Exception e) {
+            logger.error("Unexpected error while fetching opportunities: {}", e.getMessage());
+            throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
+        }
+    }
+    private OpportunityResponseDTO mapToOpportunityDTOForGetBy(OpportunityEntity opportunityEntity) {
+        OpportunityResponseDTO dto = new OpportunityResponseDTO();
+        OpportunityResponseDTO.OpportunityResponse opportunityResponse = new OpportunityResponseDTO.OpportunityResponse();
+        opportunityResponse.setId(opportunityEntity.getId());
+        opportunityResponse.setName(opportunityEntity.getName());
+        opportunityResponse.setDescription(opportunityEntity.getDescription());
+        opportunityResponse.setDate(opportunityEntity.getDate());
+        opportunityResponse.setRequiredVolunteers(opportunityEntity.getRequiredVolunteers());
+        opportunityResponse.setHours(opportunityEntity.getHours());
+        opportunityResponse.setStatus(opportunityEntity.getStatus());
+
+        if (opportunityEntity.getDisasterEntity() != null) {
+            opportunityResponse.setDisasterId(opportunityEntity.getDisasterEntity().getId());
+        }
+        dto.setOpportunityResponse(opportunityResponse);
+
+        return dto;
     }
 
     private OpportunityDisasterResponseDTO mapToOpportunityDisasterResponseDTO(OpportunityEntity opportunityEntity) {
@@ -300,7 +460,19 @@ public class OpportunityServiceImpl implements OpportunityService {
         dto.setRequiredVolunteers(opportunityEntity.getRequiredVolunteers());
         dto.setHours(opportunityEntity.getHours());
         dto.setStatus(opportunityEntity.getStatus());
-        dto.setOpportunityImage(opportunityEntity.getOpportunityImage());
+
+        // Map opportunity images
+        List<OpportunityImageDTO> opportunityImageDTOs = opportunityEntity.getOpportunityImages().stream()
+                .map(imageEntity -> {
+                    OpportunityImageDTO imageDTO = new OpportunityImageDTO();
+                    imageDTO.setId(imageEntity.getId());
+                    imageDTO.setFileName(imageEntity.getFileName());
+                    imageDTO.setImageData(Arrays.toString(imageEntity.getImageData()));
+                    imageDTO.setOpportunityId(opportunityEntity.getId());
+                    return imageDTO;
+                })
+                .collect(Collectors.toList());
+        dto.setOpportunityImages(opportunityImageDTOs);
 
         OpportunityDisasterResponseDTO.DisasterEntity disasterEntity = new OpportunityDisasterResponseDTO.DisasterEntity();
         disasterEntity.setTId(opportunityEntity.getDisasterEntity().getId());

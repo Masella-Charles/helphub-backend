@@ -19,6 +19,7 @@ import java.util.List;
 
 @RequestMapping("api/v1/testimonial")
 @RestController
+@CrossOrigin(origins = "*")
 public class TestimonialController {
     private static final Logger logger = LoggerFactory.getLogger(TestimonialController.class);
 

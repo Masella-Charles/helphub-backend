@@ -18,6 +18,7 @@ import java.util.List;
 
 @RequestMapping("api/v1/disaster")
 @RestController
+@CrossOrigin(origins = "*")
 public class DisasterController {
     private static final Logger logger = LoggerFactory.getLogger(DisasterController.class);
 
