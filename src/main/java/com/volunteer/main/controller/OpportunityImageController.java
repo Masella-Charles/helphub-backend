@@ -30,7 +30,8 @@ public class OpportunityImageController {
     }
 
     @GetMapping("/getByOpportunityId")
-    public ResponseEntity<OpportunityImageDTO> getImageByOpportunityId(@RequestParam Long opportunityId) {
+    public ResponseEntity<OpportunityImageDTO> getImageByOpportunityId(@RequestBody OpportunityImageDTO opportunityImageDTO) {
+        Long opportunityId = opportunityImageDTO.getOpportunityId();
         OpportunityImageDTO imageDTO = opportunityImageService.getImageByOpportunityId(opportunityId);
         return ResponseEntity.ok(imageDTO);
     }

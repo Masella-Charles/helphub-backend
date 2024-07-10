@@ -627,7 +627,7 @@ public class OpportunityServiceImpl implements OpportunityService {
 
                 if (opportunityId != null) {
                     opportunityUserEntities = opportunityUserEntities.stream()
-                            .filter(entity -> entity.getOpportunity().getId().equals(opportunityId))
+                            .filter(entity -> entity.getOpportunity() != null && entity.getOpportunity().getId().equals(opportunityId))
                             .collect(Collectors.toList());
                 }
             }
@@ -646,11 +646,14 @@ public class OpportunityServiceImpl implements OpportunityService {
             throw new CustomAuthenticationException("Unexpected error: " + e.getMessage(), e);
         }
     }
+
     @Override
     public List<OpportunityUserDTO> getAllOpportunityUsers() {
         try {
             List<OpportunityUserEntity> opportunityUserEntities = opportunityUserRepository.findAll();
-            return opportunityUserEntities.stream().map(this::mapToDTO).collect(Collectors.toList());
+            return opportunityUserEntities.stream()
+                    .map(this::mapToDTO)
+                    .collect(Collectors.toList());
         } catch (DataAccessException e) {
             logger.error("Database error while fetching all opportunity users: {}", e.getMessage());
             throw new CustomAuthenticationException("Database error: " + e.getMessage(), e);
@@ -667,13 +670,20 @@ public class OpportunityServiceImpl implements OpportunityService {
         opportunityUserDTO.setUserName(opportunityUserEntity.getUser().getFullName());
         opportunityUserDTO.setUserEmail(opportunityUserEntity.getUser().getEmail());
 
-        // Convert Set to List
-        List<String> userSkills = new ArrayList<>(opportunityUserEntity.getUser().getVolunteer().getSkills());
-        opportunityUserDTO.setUserSkills(userSkills);
+        logger.info("opportunityUserEntity: {}", opportunityUserEntity);
 
-        opportunityUserDTO.setOpportunityId(opportunityUserEntity.getOpportunity().getId());
-        opportunityUserDTO.setOpportunityName(opportunityUserEntity.getOpportunity().getName());
-        opportunityUserDTO.setOpportunityDescription(opportunityUserEntity.getOpportunity().getDescription());
+        // Check if opportunity is not null before mapping
+        if (opportunityUserEntity.getOpportunity() != null) {
+            opportunityUserDTO.setOpportunityId(opportunityUserEntity.getOpportunity().getId());
+            opportunityUserDTO.setOpportunityName(opportunityUserEntity.getOpportunity().getName());
+            opportunityUserDTO.setOpportunityDescription(opportunityUserEntity.getOpportunity().getDescription());
+        } else {
+            // Handle the case where opportunity is null, if needed
+            opportunityUserDTO.setOpportunityId(null);
+            opportunityUserDTO.setOpportunityName("Opportunity not found"); // Example default value
+            opportunityUserDTO.setOpportunityDescription("Opportunity details not available"); // Example default value
+        }
+
         opportunityUserDTO.setStatus(opportunityUserEntity.getStatus());
 
         ResponseStatus responseStatus = new ResponseStatus();
