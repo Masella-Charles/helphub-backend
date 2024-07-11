@@ -600,6 +600,7 @@ public class OpportunityServiceImpl implements OpportunityService {
         }
     }
 
+
     @Override
     public Object getOpportunityUserByIdOrStatusOrUserIdOrOpportunityId(Long id, Boolean status, Long userId, Long opportunityId) {
         try {
@@ -695,11 +696,18 @@ public class OpportunityServiceImpl implements OpportunityService {
         return opportunityUserDTO;
     }
 
+    @Transactional
     @Override
     public void deleteOpportunityUser(Long id) {
         try {
             OpportunityUserEntity opportunityUserEntity = opportunityUserRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("OpportunityUserEntity not found with id: " + id));
+
+            // Log details before deletion
+            logger.info("Deleting OpportunityUserEntity with id: {}", id);
+            logger.info("Associated user: {}", opportunityUserEntity.getUser());
+            logger.info("Associated opportunity: {}", opportunityUserEntity.getOpportunity());
+
             opportunityUserRepository.delete(opportunityUserEntity);
             logger.info("Volunteer assignment with id {} has been deleted successfully.", id);
 

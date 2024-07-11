@@ -27,7 +27,7 @@ public class VolunteerController {
         this.volunteerService = volunteerService;
     }
 
-    @RequestMapping(value = {"/create", "/list", "/get/{id}", "/update"},
+    @RequestMapping(value = {"/create", "/list", "/get", "/update","/getByUserId"},
             method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT})
     public ResponseEntity<?> handleVolunteerRequest(HttpServletRequest httpServletRequest ,
                                                     @RequestBody(required = false) @Valid VolunteerDto volunteerDto,
@@ -52,7 +52,8 @@ public class VolunteerController {
         return switch (path) {
             case "/api/v1/volunteer/create" -> createVolunteer(volunteerDto);
             case "/api/v1/volunteer/list" -> listVolunteers();
-            case "/api/v1/volunteer/get/{id}" -> getVolunteerById(id, volunteerDto);
+            case "/api/v1/volunteer/get" -> getVolunteerById(volunteerDto);
+            case "/api/v1/volunteer/getByUserId" -> getVolunteerByUserId(volunteerDto);
             case "/api/v1/volunteer/update" -> updateVolunteer(volunteerDto);
             default -> ResponseEntity.badRequest().body("Unsupported path: " + path);
         };
@@ -70,13 +71,26 @@ public class VolunteerController {
         return ResponseEntity.ok(volunteers);
     }
 
-    private ResponseEntity<?> getVolunteerById(Long id, VolunteerDto volunteerDto) {
+    private ResponseEntity<?> getVolunteerById(VolunteerDto volunteerDto) {
+        Long id = volunteerDto.getId();
         if (volunteerDto != null && volunteerDto.getId() != null && !volunteerDto.getId().equals(id)) {
             // Handle mismatched IDs between path variable and request body
             return ResponseEntity.badRequest().body("Mismatched ID");
         }
         // Implement your logic to get a volunteer by ID
         VolunteerEntity volunteer = volunteerService.getVolunteerById(id);
+        return ResponseEntity.ok(volunteer);
+    }
+
+
+    private ResponseEntity<?> getVolunteerByUserId(VolunteerDto volunteerDto) {
+        Long userId = volunteerDto.getUserId();
+        if (volunteerDto != null && volunteerDto.getUserId() != null && !volunteerDto.getUserId().equals(userId)) {
+            // Handle mismatched IDs between path variable and request body
+            return ResponseEntity.badRequest().body("Mismatched ID");
+        }
+        // Implement your logic to get a volunteer by ID
+        VolunteerEntity volunteer = volunteerService.getVolunteerByUserId(userId);
         return ResponseEntity.ok(volunteer);
     }
 

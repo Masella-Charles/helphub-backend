@@ -42,7 +42,7 @@ public class VolunteerServiceImpl implements VolunteerService {
     @Override
     public ResponseEntity<?> createVolunteer(VolunteerDto volunteerDto) {
         try {
-            Optional<UserEntity> userEntityOptional = userRepository.findById(volunteerDto.getUserId());
+            Optional<UserEntity> userEntityOptional = userRepository.findById(Math.toIntExact(volunteerDto.getUserId()));
             if (userEntityOptional.isEmpty()) {
                 throw new IllegalArgumentException("User ID is invalid");
             }
@@ -104,7 +104,7 @@ public class VolunteerServiceImpl implements VolunteerService {
             VolunteerEntity existingVolunteer = volunteerRepository.findById(volunteerDto.getId())
                     .orElseThrow(() -> new CustomAuthenticationException("Volunteer not found with id: " + volunteerDto.getId(), new Throwable()));
 
-            Optional<UserEntity> userEntityOptional = userRepository.findById(volunteerDto.getUserId());
+            Optional<UserEntity> userEntityOptional = userRepository.findById(Math.toIntExact(volunteerDto.getUserId()));
             if (userEntityOptional.isEmpty()) {
                 throw new IllegalArgumentException("User ID is invalid");
             }
@@ -126,7 +126,7 @@ public class VolunteerServiceImpl implements VolunteerService {
             updatedVolunteerDto.setEmail(existingVolunteer.getUser().getEmail());
             updatedVolunteerDto.setAdditionalInfo(existingVolunteer.getAdditionalInfo());
             updatedVolunteerDto.setSkills(new ArrayList<>(existingVolunteer.getSkills()));
-            updatedVolunteerDto.setUserId(Math.toIntExact(existingVolunteer.getUser().getId()));
+            updatedVolunteerDto.setUserId(existingVolunteer.getUser().getId());
 
             ResponseStatus responseStatus = new ResponseStatus();
             responseStatus.setResponseCode("200");
@@ -157,6 +157,23 @@ public class VolunteerServiceImpl implements VolunteerService {
 
             return volunteerRepository.findById(id)
                     .orElseThrow(() -> new EntityNotFoundException("Volunteer not found with id: " + id));
+        } catch (EntityNotFoundException e) {
+            // Log the error or rethrow to let the caller handle it
+            throw e;
+        } catch (Exception e) {
+            // Log the error for debugging purposes
+            e.printStackTrace();
+            // Rethrow a more generic exception or handle as appropriate
+            throw new CustomAuthenticationException("Failed to get volunteer: " + e.getMessage(), e);
+        }
+    }
+    @Override
+    public VolunteerEntity getVolunteerByUserId(Long userId) {
+        try {
+            // Retrieve the volunteer entity from the database by ID
+
+            return volunteerRepository.findByUserId(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("Volunteer not found with id: " + userId));
         } catch (EntityNotFoundException e) {
             // Log the error or rethrow to let the caller handle it
             throw e;

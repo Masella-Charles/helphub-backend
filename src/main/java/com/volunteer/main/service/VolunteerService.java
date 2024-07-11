@@ -13,4 +13,5 @@ public interface VolunteerService {
     List<VolunteerEntity> listAllVolunteers();
     ResponseEntity <?> updateVolunteer(VolunteerDto volunteerDto);
     VolunteerEntity getVolunteerById(Long id);
+    VolunteerEntity getVolunteerByUserId(Long userId);
 }

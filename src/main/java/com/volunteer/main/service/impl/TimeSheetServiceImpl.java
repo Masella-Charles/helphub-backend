@@ -31,7 +31,7 @@ public class TimeSheetServiceImpl implements TimeSheetService {
     public ResponseEntity<?> createTimeSheet(TimeSheetDTO requestDTO) {
         try {
             // Check if the user has the opportunity with status true
-            OpportunityUserEntity opportunityUser = opportunityUserRepository.findByUserIdAndOpportunityId(requestDTO.getUserId(), requestDTO.getOpportunityId())
+            OpportunityUserEntity opportunityUser = opportunityUserRepository.findByOpportunityIdAndUserId(requestDTO.getOpportunityId(),requestDTO.getUserId())
                     .orElseThrow(() -> new EntityNotFoundException("User does not have access to this opportunity"));
 
             TimeSheetEntity timesheet = new TimeSheetEntity();

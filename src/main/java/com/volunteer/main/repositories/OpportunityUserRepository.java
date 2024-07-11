@@ -19,6 +19,13 @@ public interface OpportunityUserRepository extends CrudRepository<OpportunityUse
     List<OpportunityUserEntity> findByUserId(Long userId);
 
     List<OpportunityUserEntity> findByOpportunityId(Long opportunityId);
+
+    List<OpportunityUserEntity> findByStatusAndUserId(Boolean status, Long userId);
+
+    List<OpportunityUserEntity> findByStatusAndOpportunityId(Boolean status, Long opportunityId);
+
+    List<OpportunityUserEntity> findByStatusAndUserIdAndOpportunityId(Boolean status, Long userId, Long opportunityId);
+
     List<OpportunityUserEntity> findAll();
 
     long countByOpportunityId(Long opportunityId);
@@ -26,5 +33,7 @@ public interface OpportunityUserRepository extends CrudRepository<OpportunityUse
     @Query("SELECT COUNT(oue) FROM OpportunityUserEntity oue WHERE oue.opportunity.id = :opportunityId AND oue.status = true")
     long countByOpportunityIdAndStatusTrue(@Param("opportunityId") Long opportunityId);
 
-    Optional<OpportunityUserEntity> findByUserIdAndOpportunityId(Long userId,Long opportunityId);
+    List<OpportunityUserEntity> findByUserIdAndOpportunityId(Long userId,Long opportunityId);
+
+    Optional<OpportunityUserEntity> findByOpportunityIdAndUserId(Long opportunityId,Long userId);
 }
