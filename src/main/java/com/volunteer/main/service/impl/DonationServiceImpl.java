@@ -430,6 +430,7 @@ public class DonationServiceImpl implements DonationService {
             newDto.setDonationId(donationEntity.getId());
             newDto.setAmountDistributed(newTotalAmountDistributed);
             newDto.setQuantityDistributed(newTotalQuantityDistributed);
+            newDto.setDonationStatus(newDto.getDonationStatus());
 
             // Check if further distribution is possible
             if (!canDistributeFurther(donationEntity, newDto)) {

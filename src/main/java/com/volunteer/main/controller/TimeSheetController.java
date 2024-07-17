@@ -25,7 +25,7 @@ public class TimeSheetController {
     private static final Logger logger = LoggerFactory.getLogger(TimeSheetController.class);
 
 
-    @RequestMapping(value = {"/create", "/list", "/get", "/update","/transition","delete"},
+    @RequestMapping(value = {"/create", "/list", "/get", "/update","/transition","delete","getByUserId"},
             method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE})
     public ResponseEntity<?> handlePermissionRequest(HttpServletRequest httpServletRequest ,
                                                      @RequestBody(required = false) @Valid TimeSheetDTO timeSheetDTO,
@@ -51,6 +51,7 @@ public class TimeSheetController {
             case "/api/v1/timesheet/create" -> createTimeSheet(timeSheetDTO);
             case "/api/v1/timesheet/list" -> getAllTimeSheets();
             case "/api/v1/timesheet/get" -> getTimeSheetByCriteria(timeSheetDTO);
+            case "/api/v1/timesheet/getByUserId" -> getTimeSheetsByUserId(timeSheetDTO);
             case "/api/v1/timesheet/update" -> updateTimeSheet(timeSheetDTO);
             case "/api/v1/timesheet/transition" -> transitionTimeSheetStatus(timeSheetDTO);
             case "/api/v1/timesheet/delete" -> deleteTimeSheet(timeSheetDTO);
@@ -64,8 +65,7 @@ public class TimeSheetController {
     }
 
     public ResponseEntity<?> updateTimeSheet(TimeSheetDTO requestDTO) {
-        Long timesheetId = requestDTO.getId();
-        return timeSheetService.updateTimeSheet(timesheetId, requestDTO);
+        return timeSheetService.updateTimeSheet(requestDTO);
     }
 
 
@@ -79,7 +79,8 @@ public class TimeSheetController {
     }
 
 
-    public ResponseEntity<?> getTimeSheetsByUserId(Long userId) {
+    public ResponseEntity<?> getTimeSheetsByUserId(TimeSheetDTO requestDTO) {
+        Long userId = requestDTO.getUserId();
         return timeSheetService.getTimeSheetsByUserId(userId);
     }
 

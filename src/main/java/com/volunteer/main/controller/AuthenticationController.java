@@ -41,4 +41,37 @@ public class AuthenticationController {
 
         return ResponseEntity.ok(loginResponse);
     }
+
+
+    @PutMapping("/editUser")
+    public ResponseEntity<UserEntity> editUser(@RequestBody RegisterUserDto editUserDto) {
+        Long userId = editUserDto.getId();
+        UserEntity updatedUser = authenticationService.editUser(userId, editUserDto);
+        return ResponseEntity.ok(updatedUser);
+    }
+
+    // Delete User Endpoint
+    @DeleteMapping("/deleteUser")
+    public ResponseEntity<Void> deleteUser(@RequestBody RegisterUserDto editUserDto) {
+        Long userId = editUserDto.getId();
+        authenticationService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Forgot Password Endpoint
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody RegisterUserDto editUserDto) {
+        String email = editUserDto.getEmail();
+        String newPassword = editUserDto.getPassword();
+        return authenticationService.forgotPassword(email, newPassword);
+    }
+
+    // Edit Password Endpoint
+    @PutMapping("/edit-password")
+    public ResponseEntity<Void> editPassword(@RequestBody RegisterUserDto editUserDto) {
+        String email = editUserDto.getEmail();
+        String newPassword = editUserDto.getPassword();
+        authenticationService.editPassword(email, newPassword);
+        return ResponseEntity.noContent().build();
+    }
 }

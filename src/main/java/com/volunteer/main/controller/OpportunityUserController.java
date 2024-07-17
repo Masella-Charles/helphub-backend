@@ -74,7 +74,9 @@ public class OpportunityUserController {
     }
 
     public ResponseEntity<?> volunteerTransition(OpportunityUserDTO opportunityUserDTO) {
-        OpportunityUserDTO response = opportunityService.volunteerTransition(opportunityUserDTO);
+        Long opportunityUserId = opportunityUserDTO.getId();
+        Boolean newStatus = opportunityUserDTO.getStatus();
+        OpportunityUserDTO response = opportunityService.volunteerTransition(opportunityUserId, newStatus);
         return ResponseEntity.ok(response);
     }
 

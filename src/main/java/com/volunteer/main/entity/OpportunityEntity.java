@@ -25,9 +25,6 @@ public class OpportunityEntity {
     private Double hours;
     private Boolean status;
 
-//    @OneToMany(mappedBy = "opportunityEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-//    //private Set<OpportunityImageEntity> opportunityImages = new HashSet<>();
-//    private List<OpportunityImageEntity> opportunityImages;
 
     @OneToMany(mappedBy = "opportunityEntity", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<OpportunityImageEntity> opportunityImages;

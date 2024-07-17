@@ -25,7 +25,7 @@ public interface OpportunityService {
     List<OpportunityResponseDTO> getOpportunitiesByStatus(Boolean status) ;
 
     OpportunityUserDTO volunteerNow(Long userId, Long opportunityId);
-    OpportunityUserDTO volunteerTransition(OpportunityUserDTO opportunityUserDTO);
+    OpportunityUserDTO volunteerTransition(Long opportunityUserId, boolean newStatus);
     Object  getOpportunityUserByIdOrStatusOrUserIdOrOpportunityId(Long id, Boolean status, Long userId, Long opportunityId);
     List<OpportunityUserDTO> getAllOpportunityUsers();
     void deleteOpportunityUser(Long id);

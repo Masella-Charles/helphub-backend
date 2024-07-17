@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public interface TimeSheetService {
     ResponseEntity<?> createTimeSheet(TimeSheetDTO timeSheetDTO);
 
-    ResponseEntity<?> updateTimeSheet(Long timesheetId, TimeSheetDTO timeSheetDTO);
+    ResponseEntity<?> updateTimeSheet(TimeSheetDTO timeSheetDTO);
 
     ResponseEntity<?> deleteTimeSheet(Long timesheetId);
 
